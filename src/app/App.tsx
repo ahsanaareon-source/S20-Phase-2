@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Lock, LogOut, Search } from 'lucide-react';
+import { Lock, Search } from 'lucide-react';
 import { Toaster } from 'sonner';
 import Sidebar from './components/Sidebar';
 import EmptyState from './components/EmptyState';
@@ -238,13 +238,6 @@ export default function App() {
     }
 
     setAccessError('Incorrect password. Try again.');
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem(PROTOTYPE_SESSION_KEY);
-    setIsAuthenticated(false);
-    setAccessPassword('');
-    setAccessError('');
   };
 
   const handleCreateClick = () => {
@@ -546,10 +539,6 @@ export default function App() {
                         </button>
                       )}
                     </div>
-                    <button className="btn btn-outline-secondary d-flex align-items-center gap-2" onClick={handleLogout}>
-                      <LogOut size={16} />
-                      Logout
-                    </button>
                   </div>
                 </div>
               </div>
