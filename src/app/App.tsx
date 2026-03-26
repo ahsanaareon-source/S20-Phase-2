@@ -572,7 +572,14 @@ export default function App() {
                 work={selectedWork}
                 onBack={handleBackToList}
                 onUpdateWork={handleUpdateWork}
-                onEdit={handleEditWork}
+                isEditMode={isEditMode}
+                onEditModeChange={(isEditing) => {
+                  if (isEditing) {
+                    handleEditWork(selectedWork);
+                    return;
+                  }
+                  setIsEditMode(false);
+                }}
               />
             )}
           </div>

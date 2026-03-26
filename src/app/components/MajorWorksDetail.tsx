@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Download, MapPin, Users, FileText, Clipboard, Briefcase, MessageSquare, PoundSterling, CheckCircle, AlertTriangle, AlertCircle, Clock, ChevronDown, ChevronUp, Hourglass, Search, Plus, ChevronLeft, ChevronRight, FilePlus, Check, X as XIcon, X, Info, Building2, Archive, Link as LinkIcon, Filter } from 'lucide-react';
 import editIcon from '../../assets/fbd9969709d1864a127070fa8f50a71f1d1c78cb.png';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import NewDocumentModal from './NewDocumentModal';
 import NewProjectDocumentModal from './NewProjectDocumentModal';
 import DocumentDetailPanel from './DocumentDetailPanel';
@@ -1447,60 +1446,268 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   const respondedLeaseholderCount = new Set(observations.map(observation => observation.leaseholderId)).size;
   const totalObservationEntries = observations.length;
   const objectionCount = observations.filter(observation => observation.isObjection).length;
-  const observationResponseRate = leaseholderCount > 0
-    ? Math.min(Math.round((respondedLeaseholderCount / leaseholderCount) * 100), 100)
-    : 0;
-  const latestObservation = observations.reduce<Observation | null>((latest, observation) => {
-    if (!latest) {
-      return observation;
-    }
-    return new Date(observation.receivedOn).getTime() > new Date(latest.receivedOn).getTime()
-      ? observation
-      : latest;
-  }, null);
-  const latestObservationLabel = latestObservation
-    ? new Date(latestObservation.receivedOn).toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      })
-    : 'No responses yet';
+  const currentStageDocuments = useMemo(
+    () => documents.filter((document: any) => document.category === 'consultation'),
+    [documents]
+  );
 
-  const chartData = (() => {
-    const weeks = Array.from({ length: 5 }, (_, index) => {
-      const weekStart = new Date();
-      weekStart.setHours(0, 0, 0, 0);
-      weekStart.setDate(weekStart.getDate() - (4 - index) * 7);
-      return weekStart;
+  const unresolvedObservationCount = observations.filter(observation => observation.status !== 'responded').length;
+  const addressedObservationCount = observations.filter(observation => observation.status === 'responded').length;
+  const isObservationPriorityStage = ['first-notice', 'statement-of-estimate', 'notice-of-reasons'].includes(currentConsultationStage);
+
+  const observationNoticeSummaries = useMemo(() => {
+    const summaryMap = new Map<string, {
+      documentId: string | number;
+      documentName: string;
+      stage: ConsultationStage;
+      responses: number;
+      objections: number;
+      latestReceivedOn?: string;
+    }>();
+
+    observations.forEach(observation => {
+      const key = String(observation.documentId || observation.stage);
+      const existing = summaryMap.get(key);
+
+      if (!existing) {
+        summaryMap.set(key, {
+          documentId: observation.documentId || key,
+          documentName: observation.documentName || CONSULTATION_STAGE_LABELS[observation.stage],
+          stage: observation.stage,
+          responses: 1,
+          objections: observation.isObjection ? 1 : 0,
+          latestReceivedOn: observation.receivedOn
+        });
+        return;
+      }
+
+      existing.responses += 1;
+      existing.objections += observation.isObjection ? 1 : 0;
+      if (!existing.latestReceivedOn || new Date(observation.receivedOn).getTime() > new Date(existing.latestReceivedOn).getTime()) {
+        existing.latestReceivedOn = observation.receivedOn;
+      }
     });
 
-    const actualCounts = weeks.map((weekStart, index) => {
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
+    return Array.from(summaryMap.values()).sort((a, b) =>
+      new Date(b.latestReceivedOn || 0).getTime() - new Date(a.latestReceivedOn || 0).getTime()
+    );
+  }, [observations]);
 
-      const count = observations.filter(observation => {
-        const receivedOn = new Date(observation.receivedOn);
-        if (index === weeks.length - 1) {
-          return receivedOn >= weekStart;
+  const overviewAttentionItems = useMemo(() => {
+    if (isNewWork) {
+      return [
+        {
+          source: 'Setup',
+          title: 'No consultation started',
+          detail: 'Create the first consultation documents to begin the Section 20 process.',
+          tone: 'secondary' as const,
+          actionLabel: 'Open documents',
+          targetTab: 'documents' as const
         }
-        return receivedOn >= weekStart && receivedOn < weekEnd;
-      }).length;
+      ];
+    }
 
-      return count;
-    });
+    const items: {
+      source: string;
+      title: string;
+      where?: string;
+      when?: string;
+      detail: string;
+      tone: 'critical' | 'warning' | 'info' | 'secondary';
+      actionLabel: string;
+      targetTab: 'documents' | 'issues';
+      targetDocumentId?: string | number;
+    }[] = [];
 
-    let runningActual = 0;
+    if (objectionCount > 0 && isObservationPriorityStage) {
+      items.push({
+        source: 'Observations',
+        title: `${objectionCount} objection${objectionCount === 1 ? '' : 's'} unresolved`,
+        where: observationNoticeSummaries[0]?.documentName || 'Active consultation notice',
+        when: observationNoticeSummaries[0]?.latestReceivedOn
+          ? new Date(observationNoticeSummaries[0].latestReceivedOn).toLocaleDateString('en-GB')
+          : undefined,
+        detail: 'Needs review before the consultation stage can be closed out.',
+        tone: objectionCount >= 3 ? 'critical' : 'warning',
+        actionLabel: 'Review observations',
+        targetTab: 'documents',
+        targetDocumentId: observationNoticeSummaries[0]?.documentId
+      });
+    }
 
-    return weeks.map((_, index) => {
-      runningActual += actualCounts[index];
-      return {
-        id: `week-${index + 1}`,
-        week: `Week ${index + 1}`,
-        actual: runningActual,
-        target: Math.round(((index + 1) / weeks.length) * leaseholderCount)
-      };
-    });
-  })();
+    if (unresolvedObservationCount > 0 && isObservationPriorityStage) {
+      items.push({
+        source: 'Observations',
+        title: `${unresolvedObservationCount} response${unresolvedObservationCount === 1 ? '' : 's'} still open`,
+        where: observationNoticeSummaries[0]?.documentName || 'Active consultation notice',
+        when: observationNoticeSummaries[0]?.latestReceivedOn
+          ? new Date(observationNoticeSummaries[0].latestReceivedOn).toLocaleDateString('en-GB')
+          : undefined,
+        detail: 'Leaseholder responses still need PM action before consultation closure.',
+        tone: unresolvedObservationCount >= 6 ? 'critical' : 'warning',
+        actionLabel: 'Review observations',
+        targetTab: 'documents',
+        targetDocumentId: observationNoticeSummaries[0]?.documentId
+      });
+    }
+
+    const draftConsultationDocs = currentStageDocuments.filter((document: any) => document.status === 'Draft');
+    if (draftConsultationDocs.length > 0) {
+      items.push({
+        source: 'Documents',
+        title: `${draftConsultationDocs.length} consultation document${draftConsultationDocs.length === 1 ? '' : 's'} still draft`,
+        where: draftConsultationDocs[0]?.name,
+        when: draftConsultationDocs[0]?.lastUpdated,
+        detail: 'Required consultation notices are still draft and block safe progression.',
+        tone: draftConsultationDocs.length >= 2 ? 'critical' : 'warning',
+        actionLabel: 'Open draft',
+        targetTab: 'documents',
+        targetDocumentId: draftConsultationDocs[0]?.id
+      });
+    }
+
+    const generatedButNotSent = currentStageDocuments.filter((document: any) => document.postalPackGeneratedAt && !document.sentDate);
+    if (generatedButNotSent.length > 0) {
+      items.push({
+        source: 'Delivery',
+        title: `${generatedButNotSent.length} document${generatedButNotSent.length === 1 ? '' : 's'} generated but not marked sent`,
+        where: generatedButNotSent[0]?.name,
+        when: generatedButNotSent[0]?.postalPackGeneratedAt,
+        detail: 'Confirm issue once postal or email delivery has actually happened.',
+        tone: generatedButNotSent.length >= 2 ? 'critical' : 'warning',
+        actionLabel: 'Open delivery',
+        targetTab: 'documents',
+        targetDocumentId: generatedButNotSent[0]?.id
+      });
+    }
+
+    return items.slice(0, 4);
+  }, [
+    currentStageDocuments,
+    isNewWork,
+    isObservationPriorityStage,
+    objectionCount,
+    observationNoticeSummaries,
+    unresolvedObservationCount
+  ]);
+
+  const overviewKeyUpdates = useMemo(() => {
+    const formatUpdateTimestamp = (value?: string | null) => {
+      if (!value) return undefined;
+      if (value.includes(',') && /\d{2}\/\d{2}\/\d{4}/.test(value)) return value;
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) return value;
+      return parsed.toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    };
+
+    if (isNewWork) {
+      return [
+        {
+          source: 'Setup',
+          title: 'Major works created',
+          where: 'Overview',
+          when: formatUpdateTimestamp(work.createdOn),
+          actor: work.propertyManager || 'System',
+          detail: 'No live consultation, document, or contractor activity yet.',
+          actionLabel: 'Open documents',
+          targetTab: 'documents' as const
+        }
+      ];
+    }
+
+    const updates: {
+      source: string;
+      title: string;
+      where?: string;
+      when?: string;
+      actor?: string;
+      detail: string;
+      actionLabel: string;
+      targetTab: 'documents' | 'issues';
+      targetDocumentId?: string | number;
+    }[] = [];
+
+    const latestSentConsultationDoc = [...currentStageDocuments]
+      .filter((document: any) => document.sentDate)
+      .sort((a: any, b: any) => new Date(b.sentDate || 0).getTime() - new Date(a.sentDate || 0).getTime())[0];
+
+    if (latestSentConsultationDoc) {
+      updates.push({
+        source: 'Documents',
+        title: `${latestSentConsultationDoc.lastUpdatedBy || 'PM'} sent ${latestSentConsultationDoc.name}`,
+        where: latestSentConsultationDoc.stage,
+        when: formatUpdateTimestamp(latestSentConsultationDoc.sentDate),
+        actor: latestSentConsultationDoc.lastUpdatedBy,
+        detail: `Marked sent in delivery for ${latestSentConsultationDoc.name}.`,
+        actionLabel: 'Open document',
+        targetTab: 'documents',
+        targetDocumentId: latestSentConsultationDoc.id
+      });
+    }
+
+    if (observationNoticeSummaries[0] && observationNoticeSummaries[0].objections === 0) {
+      updates.push({
+        source: 'Observations',
+        title: `${observationNoticeSummaries[0].responses} leaseholder response${observationNoticeSummaries[0].responses === 1 ? '' : 's'} logged`,
+        where: CONSULTATION_STAGE_LABELS[observationNoticeSummaries[0].stage],
+        when: formatUpdateTimestamp(observationNoticeSummaries[0].latestReceivedOn),
+        actor: 'Leaseholders',
+        detail: `Latest against ${observationNoticeSummaries[0].documentName}.`,
+        actionLabel: 'Review observations',
+        targetTab: 'documents',
+        targetDocumentId: observationNoticeSummaries[0].documentId
+      });
+    }
+
+    if (cdmAssessment || tendersCdmAssessment || cdmAdditionalChecks.hseF10Submitted) {
+      updates.push({
+        source: 'Compliance',
+        title: `${currentStageDocuments[0]?.lastUpdatedBy || 'PM'} updated CDM compliance checks`,
+        where: 'CDM',
+        when: formatUpdateTimestamp(currentStageDocuments[0]?.lastUpdated),
+        actor: currentStageDocuments[0]?.lastUpdatedBy || 'Property manager',
+        detail: 'CDM requirements were reviewed and updated for this major works.',
+        actionLabel: 'Open documents',
+        targetTab: 'documents'
+      });
+    }
+
+    return updates.slice(0, 4);
+  }, [
+    cdmAdditionalChecks.hseF10Submitted,
+    cdmAssessment,
+    currentStageDocuments,
+    isNewWork,
+    observationNoticeSummaries,
+    tendersCdmAssessment,
+    work.createdOn,
+    work.propertyManager
+  ]);
+
+  const handleOverviewAction = (targetTab: 'documents' | 'issues', targetDocumentId?: string | number) => {
+    if (targetTab === 'documents') {
+      setActiveTab('documents');
+      setDocumentSegment('consultation');
+
+      if (targetDocumentId !== undefined) {
+        const targetDocument = documents.find((document: any) => String(document.id) === String(targetDocumentId));
+        if (targetDocument) {
+          setSelectedDocument(targetDocument);
+          setShowDocumentDetail(true);
+        }
+      }
+      return;
+    }
+
+    setActiveTab(targetTab);
+  };
 
   const toggleStage = (stageId: string) => {
     setExpandedStage(prev => prev === stageId ? null : stageId);
@@ -2823,75 +3030,23 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
               </div>
 
               <div className="row mb-4">
-                <div className="col-lg-5 mb-4">
+                <div className="col-12 mb-4">
                   <div className="card border-0 shadow-sm h-100">
                     <div className="card-body">
-                      <h5 className="mb-2">Response Trend</h5>
-                      <p className="text-muted small mb-4">Weekly progress vs target</p>
-                      
-                      <div className="d-flex align-items-center justify-content-center" style={{ height: '250px' }}>
-                        <div className="text-center">
-                          <div className="d-flex justify-content-center mb-3">
-                            <Clock size={48} className="text-muted opacity-50" />
-                          </div>
-                          <p className="text-muted mb-0">No response data yet</p>
-                          <p className="text-muted small">Chart will appear when consultation begins</p>
-                        </div>
+                      <h5 className="mb-2">Needs attention</h5>
+                      <div className="rounded-3 border p-3 text-muted small">
+                        Nothing needs PM action yet. Live items will appear here once consultation or contractor activity starts.
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="col-lg-7 mb-4">
+                <div className="col-12 mb-4">
                   <div className="card border-0 shadow-sm h-100">
                     <div className="card-body">
-                      <div className="d-flex align-items-center gap-2 mb-4">
-                        <Users size={20} className="text-muted" />
-                        <h5 className="mb-0">Leaseholder observations</h5>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="text-muted">Overall Response Rate</span>
-                          <span className="fw-bold">{observationResponseRate}%</span>
-                        </div>
-                        <div className="progress" style={{ height: '10px' }}>
-                          <div 
-                            className={`progress-bar ${observationResponseRate > 0 ? 'bg-dark' : 'bg-secondary'}`}
-                            role="progressbar" 
-                            style={{ width: `${observationResponseRate}%` }}
-                            aria-valuenow={observationResponseRate} 
-                            aria-valuemin={0} 
-                            aria-valuemax={100}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="row g-3 mb-3">
-                        <div className="col-6">
-                          <div className="text-muted small mb-1">Total leaseholders</div>
-                          <div className="h4 mb-0">{leaseholderCount}</div>
-                        </div>
-                        <div className="col-6">
-                          <div className="text-muted small mb-1">Leaseholders responded</div>
-                          <div className={`h4 mb-0 ${respondedLeaseholderCount === 0 ? 'text-muted' : ''}`}>
-                            {respondedLeaseholderCount}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="text-muted small mb-1">Latest response</div>
-                        <div className={`fw-semibold small ${!latestObservation ? 'text-muted' : ''}`}>
-                          {latestObservationLabel}
-                        </div>
-                      </div>
-
-                      <div className="mt-3">
-                        <div className="text-muted small mb-1">Objections Received</div>
-                        <div className={`h4 mb-0 ${objectionCount === 0 ? 'text-muted' : ''}`}>
-                          {objectionCount === 0 ? 'No objections logged' : `${objectionCount} issue${objectionCount === 1 ? '' : 's'} raised`}
-                        </div>
+                      <h5 className="mb-2">Key updates</h5>
+                      <div className="rounded-3 border overflow-hidden">
+                        <div className="px-3 py-3 text-muted small">No updates yet. This area will show the latest meaningful changes once the case becomes active.</div>
                       </div>
                     </div>
                   </div>
@@ -3012,107 +3167,154 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
           </div>
 
           <div className="row mb-4">
-            <div className="col-lg-5 mb-4">
+            <div className="col-12 mb-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body">
-                  <h5 className="mb-2">Response Trend</h5>
-                  <p className="text-muted small mb-4">Weekly progress vs target</p>
-                  
-                  <ResponsiveContainer width="100%" height={250}>
-                    <LineChart data={chartData}>
-                      <CartesianGrid key="grid" strokeDasharray="3 3" stroke="#e0e0e0" />
-                      <XAxis 
-                        key="x-axis"
-                        dataKey="week" 
-                        tick={{ fontSize: 12 }}
-                        stroke="#6c757d"
-                      />
-                      <YAxis 
-                        key="y-axis"
-                        tick={{ fontSize: 12 }}
-                        stroke="#6c757d"
-                      />
-                      <Tooltip key="tooltip" />
-                      <Legend 
-                        key="legend"
-                        iconType="circle"
-                        wrapperStyle={{ fontSize: '12px' }}
-                      />
-                      <Line 
-                        key="actual-line"
-                        type="monotone" 
-                        dataKey="actual" 
-                        stroke="#0d6efd" 
-                        strokeWidth={2}
-                        name="Actual responses"
-                        dot={{ r: 4 }}
-                      />
-                      <Line 
-                        key="target-line"
-                        type="monotone" 
-                        dataKey="target" 
-                        stroke="#6c757d" 
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        name="Target"
-                        dot={{ r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <h5 className="mb-2">Needs attention</h5>
+                  {overviewAttentionItems.length > 0 ? (
+                    <div className="rounded-3 border overflow-hidden">
+                      {overviewAttentionItems.map((item, index) => (
+                        <div
+                          key={`${item.title}-${index}`}
+                          className={index < overviewAttentionItems.length - 1 ? 'border-bottom' : ''}
+                          style={{
+                            borderLeftWidth: '4px',
+                            borderLeftStyle: 'solid',
+                            borderLeftColor:
+                              item.tone === 'critical'
+                                ? '#DC2626'
+                                : item.tone === 'warning'
+                                  ? '#F59E0B'
+                                  : '#175CD3',
+                            backgroundColor: 'transparent'
+                          }}
+                        >
+                          <div className="px-4 py-4">
+                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+                              <div style={{ minWidth: 0 }}>
+                                <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
+                                  <span
+                                    className="badge rounded-pill"
+                                    style={{
+                                      fontSize: '12px',
+                                      fontWeight: 600,
+                                      padding: '0.4rem 0.65rem',
+                                      backgroundColor:
+                                        item.tone === 'critical'
+                                          ? '#FEE4E2'
+                                          : item.tone === 'warning'
+                                            ? '#FEC84B'
+                                            : '#D1E9FF',
+                                      color:
+                                        item.tone === 'critical'
+                                          ? '#912018'
+                                          : item.tone === 'warning'
+                                            ? '#7A2E0E'
+                                            : '#1849A9'
+                                    }}
+                                  >
+                                    {item.tone === 'critical' ? 'Very urgent' : item.tone === 'warning' ? 'Urgent' : 'Immediate'}
+                                  </span>
+                                  <div className="fw-bold text-dark" style={{ fontSize: '16px', lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+                                    {item.title}
+                                  </div>
+                                </div>
+                                {(item.where || item.when) && (
+                                  <div className="mb-2" style={{ color: '#344054', fontSize: '13px', fontWeight: 600, lineHeight: 1.4 }}>
+                                    {item.where && <span className="fw-medium">{item.where}</span>}
+                                    {item.where && item.when && <span>{' • '}</span>}
+                                    {item.when && <span>{item.when}</span>}
+                                  </div>
+                                )}
+                                <div style={{ color: '#475467', fontSize: '13px', fontWeight: 500, lineHeight: 1.55, maxWidth: '72ch' }}>
+                                  {item.detail}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-link p-0 text-decoration-none mt-2"
+                                  onClick={() => handleOverviewAction(item.targetTab, item.targetDocumentId)}
+                                >
+                                  {item.actionLabel}
+                                </button>
+                              </div>
+                              <div className="d-flex flex-column align-items-start align-items-md-end gap-2 flex-shrink-0" style={{ minWidth: '150px' }}>
+                                <span
+                                  className="badge rounded-pill"
+                                  style={{
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    padding: '0.4rem 0.65rem',
+                                    backgroundColor: 'rgba(100, 116, 139, 0.12)',
+                                    color: '#475569'
+                                  }}
+                                >
+                                  {item.source}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-3 border p-3 text-muted small">
+                      All good. No immediate actions are needed and this major works is currently on track.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="col-lg-7 mb-4">
+            <div className="col-12 mb-4">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body">
-                  <div className="d-flex align-items-center gap-2 mb-4">
-                    <Users size={20} />
-                    <h5 className="mb-0">Leaseholder observations</h5>
-                  </div>
-
-                  <div className="mb-4">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <span className="text-muted">Overall Response Rate</span>
-                      <span className="fw-bold">{observationResponseRate}%</span>
-                    </div>
-                    <div className="progress" style={{ height: '10px' }}>
-                      <div 
-                        className="progress-bar bg-dark" 
-                        role="progressbar" 
-                        style={{ width: `${observationResponseRate}%` }}
-                        aria-valuenow={observationResponseRate} 
-                        aria-valuemin={0} 
-                        aria-valuemax={100}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="row g-3 mb-3">
-                    <div className="col-6">
-                      <div className="text-muted small mb-1">Total leaseholders</div>
-                      <div className="h4 mb-0">{leaseholderCount}</div>
-                    </div>
-                    <div className="col-6">
-                      <div className="text-muted small mb-1">Leaseholders responded</div>
-                      <div className={`h4 mb-0 ${respondedLeaseholderCount === 0 ? 'text-muted' : ''}`}>
-                        {respondedLeaseholderCount}
+                  <h5 className="mb-2">Key updates</h5>
+                  <div className="rounded-3 bg-white p-3">
+                    {overviewKeyUpdates.map((update, index) => (
+                      <div
+                        key={`${update.title}-${index}`}
+                        className={index < overviewKeyUpdates.length - 1 ? 'pb-3 mb-3 border-bottom' : ''}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-1">
+                            <div className="fw-bold text-dark" style={{ fontSize: '16px', lineHeight: 1.3, letterSpacing: '-0.01em' }}>
+                              {update.title}
+                            </div>
+                            <span
+                              className="badge rounded-pill"
+                              style={{
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                padding: '0.35rem 0.6rem',
+                                backgroundColor: 'rgba(100, 116, 139, 0.12)',
+                                color: '#475569'
+                              }}
+                            >
+                              {update.source}
+                            </span>
+                          </div>
+                          {(update.where || update.when || update.actor) && (
+                            <div className="mb-1" style={{ color: '#344054', fontSize: '13px', fontWeight: 600, lineHeight: 1.4 }}>
+                              {update.where && <span className="fw-medium">{update.where}</span>}
+                              {update.where && (update.when || update.actor) && <span>{' • '}</span>}
+                              {update.when && <span>{update.when}</span>}
+                              {update.when && update.actor && <span>{' • '}</span>}
+                              {update.actor && <span>by {update.actor}</span>}
+                            </div>
+                          )}
+                          <div style={{ color: '#475467', fontSize: '13px', fontWeight: 500, lineHeight: 1.55, maxWidth: '72ch' }}>
+                            {update.detail}
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-link p-0 text-decoration-none"
+                            onClick={() => handleOverviewAction(update.targetTab, update.targetDocumentId)}
+                          >
+                            {update.actionLabel}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="text-muted small mb-1">Latest response</div>
-                    <div className={`fw-semibold small ${!latestObservation ? 'text-muted' : ''}`}>
-                      {latestObservationLabel}
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <div className="text-muted small mb-1">Objections Received</div>
-                    <div className="h4 mb-0">
-                      {objectionCount === 0 ? 'No objections logged' : `${objectionCount} issue${objectionCount === 1 ? '' : 's'} raised`}
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
