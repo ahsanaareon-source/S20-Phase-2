@@ -6,6 +6,7 @@ import EmptyState from './components/EmptyState';
 import MajorWorksForm from './components/MajorWorksForm';
 import MajorWorksList from './components/MajorWorksList';
 import MajorWorksDetail from './components/MajorWorksDetail';
+import ConfirmationModal from './components/ConfirmationModal';
 import { MajorWork, MajorWorkFormData } from '@/types';
 import { formatDateTime, calculateAgentFee, getPropertyLabel } from '@/utils/formatters';
 import { toast } from '@/utils/toast';
@@ -33,6 +34,8 @@ export default function App() {
   const [selectedWork, setSelectedWork] = useState<MajorWork | null>(null);
   const [activePage, setActivePage] = useState('major-works');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isFormDirty, setIsFormDirty] = useState(false);
+  const [showDiscardChangesModal, setShowDiscardChangesModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem(PROTOTYPE_SESSION_KEY) === 'true');
   const [accessPassword, setAccessPassword] = useState('');
@@ -243,12 +246,14 @@ export default function App() {
   const handleCreateClick = () => {
     setFormData(null);
     setIsEditMode(false);
+    setIsFormDirty(false);
     setCurrentView('form');
   };
 
   const handleFormCancel = () => {
     setCurrentView(majorWorks.length === 0 ? 'empty' : 'list');
     setIsEditMode(false);
+    setIsFormDirty(false);
   };
 
   const handleFormSubmit = (data: MajorWorkFormData) => {
@@ -280,6 +285,7 @@ export default function App() {
       setSelectedWork(updatedWork);
       setCurrentView('detail');
       setIsEditMode(false);
+      setIsFormDirty(false);
       toast.success('Major work updated successfully');
     } else {
       // Create new work
@@ -300,6 +306,7 @@ export default function App() {
       setMajorWorks([newWork, ...majorWorks]);
       setSelectedWork(newWork);
       setCurrentView('detail');
+      setIsFormDirty(false);
       toast.success('Major work created successfully');
     }
   };
@@ -334,18 +341,16 @@ export default function App() {
     setCurrentView(majorWorks.length === 0 ? 'empty' : 'list');
     setSelectedWork(null);
     setIsEditMode(false);
+    setIsFormDirty(false);
   };
 
   const handleBackClick = () => {
     if (isEditMode) {
-      const hasChanges = formData !== null;
-      if (hasChanges) {
-        if (window.confirm('You have unsaved changes. Do you want to discard them?')) {
-          setIsEditMode(false);
-          setFormData(null);
-        }
+      if (isFormDirty) {
+        setShowDiscardChangesModal(true);
       } else {
         setIsEditMode(false);
+        setFormData(null);
       }
     } else {
       handleBackToList();
@@ -361,6 +366,7 @@ export default function App() {
     setSelectedWork(work);
     setFormData(work.formData || null);
     setIsEditMode(true);
+    setIsFormDirty(false);
     setCurrentView('form');
   };
 
@@ -564,6 +570,7 @@ export default function App() {
                 onSubmit={handleFormSubmit}
                 initialData={formData}
                 mode={isEditMode ? 'edit' : 'create'}
+                onDirtyChange={setIsFormDirty}
               />
             )}
             
@@ -585,6 +592,21 @@ export default function App() {
           </div>
         </div>
       </div>
+      <ConfirmationModal
+        show={showDiscardChangesModal}
+        title="Discard changes?"
+        message="You have unsaved edits in this major works form. Leaving now will discard those changes."
+        confirmLabel="Discard changes"
+        cancelLabel="Keep editing"
+        variant="warning"
+        onCancel={() => setShowDiscardChangesModal(false)}
+        onConfirm={() => {
+          setShowDiscardChangesModal(false);
+          setIsEditMode(false);
+          setFormData(null);
+          setIsFormDirty(false);
+        }}
+      />
     </>
   );
 }

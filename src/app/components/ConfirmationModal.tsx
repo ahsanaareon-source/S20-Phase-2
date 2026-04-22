@@ -1,12 +1,14 @@
 import { AlertTriangle } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 interface ConfirmationModalProps {
   show: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: 'warning' | 'danger';
+  variant?: 'warning' | 'danger' | 'info';
+  confirmDisabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -18,6 +20,7 @@ export default function ConfirmationModal({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   variant = 'warning',
+  confirmDisabled = false,
   onConfirm,
   onCancel
 }: ConfirmationModalProps) {
@@ -25,8 +28,10 @@ export default function ConfirmationModal({
     return null;
   }
 
-  const confirmClassName = variant === 'danger' ? 'btn-danger' : 'btn-warning';
-  const iconColor = variant === 'danger' ? '#dc3545' : '#f59e0b';
+  const confirmClassName =
+    variant === 'danger' ? 'btn-danger' : variant === 'info' ? 'btn-primary' : 'btn-warning';
+  const iconColor =
+    variant === 'danger' ? '#dc3545' : variant === 'info' ? '#2563eb' : '#f59e0b';
 
   return (
     <div
@@ -45,13 +50,13 @@ export default function ConfirmationModal({
             <button type="button" className="btn-close" aria-label="Close" onClick={onCancel} />
           </div>
           <div className="modal-body">
-            <p className="mb-0">{message}</p>
+            <div className="mb-0">{message}</div>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-outline-secondary" onClick={onCancel}>
               {cancelLabel}
             </button>
-            <button type="button" className={`btn ${confirmClassName}`} onClick={onConfirm}>
+            <button type="button" className={`btn ${confirmClassName}`} onClick={onConfirm} disabled={confirmDisabled}>
               {confirmLabel}
             </button>
           </div>

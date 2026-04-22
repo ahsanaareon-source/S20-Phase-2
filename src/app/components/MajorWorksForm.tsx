@@ -11,6 +11,7 @@ interface MajorWorksFormProps {
   onSubmit: (data: any) => void;
   initialData?: any;
   mode?: 'create' | 'edit';
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 // Template data based on work categories - Section 20 Consultation Stages
@@ -248,7 +249,7 @@ const availableUsers = [
   { id: 'user-6', name: 'David Thompson', role: 'Technical Manager' },
 ];
 
-export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode = 'create' }: MajorWorksFormProps) {
+export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode = 'create', onDirtyChange }: MajorWorksFormProps) {
   // Default form data
   const defaultFormData = {
     // Step 1 - Basic Info
@@ -312,6 +313,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
   };
   
   const [formData, setFormData] = useState(getInitialFormData());
+  const initialSnapshot = JSON.stringify(getInitialFormData());
   
   // Reset form when initialData changes (e.g., when creating a new form)
   useEffect(() => {
@@ -326,6 +328,10 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
       setFormData(getInitialFormData());
     }
   }, [initialData, mode]);
+
+  useEffect(() => {
+    onDirtyChange?.(JSON.stringify(formData) !== initialSnapshot);
+  }, [formData, initialSnapshot, onDirtyChange]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -348,7 +354,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
   }, [isUserDropdownOpen]);
 
   const handleChange = (field: string, value: any) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleUserToggle = (userId: string) => {
@@ -477,6 +483,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
         };
     
     onSubmit(finalData);
+    onDirtyChange?.(false);
   };
 
   const formatWorkCategory = (category: string) => {

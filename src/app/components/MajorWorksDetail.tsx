@@ -4691,6 +4691,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         show={showNewDocumentModal}
         onClose={handleDocumentModalClose}
         onSubmit={handleDocumentSubmit}
+        existingDocuments={documents}
       />
 
       {/* New Project Document Modal */}
