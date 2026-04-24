@@ -45,6 +45,7 @@ interface ObservationFormState {
   channel: 'email' | 'post' | 'phone' | 'portal' | 'internal-note';
   message: string;
   isObjection: boolean;
+  status: Observation['status'];
 }
 
 export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMode = false, onEditModeChange }: MajorWorksDetailProps) {
@@ -107,6 +108,21 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   const [showDocumentDetail, setShowDocumentDetail] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
+  const [stageProgressWarning, setStageProgressWarning] = useState<
+    | {
+        type: 'tasks';
+        blockedStageName: string;
+        incompleteCount: number;
+      }
+    | {
+        type: 'cooldown';
+        blockedStageName: string;
+        requiredDays: number;
+        remainingDays: number;
+        sentDate?: string;
+      }
+    | null
+  >(null);
   // Column visibility for documents tab
   const [showDocColumnDropdown, setShowDocColumnDropdown] = useState(false);
   const [visibleDocColumns, setVisibleDocColumns] = useState({
@@ -145,7 +161,24 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   const [showLinkIssueModal, setShowLinkIssueModal] = useState(false);
   const [issueSearchQuery, setIssueSearchQuery] = useState('');
   const [selectedIssuesToLink, setSelectedIssuesToLink] = useState<string[]>([]);
-  const [linkedIssues, setLinkedIssues] = useState<string[]>([]);
+  const [linkedIssues, setLinkedIssues] = useState<string[]>(() => {
+    if (work.isNew) {
+      return [];
+    }
+
+    if (Array.isArray((work as any).linkedIssues) && (work as any).linkedIssues.length > 0) {
+      return (work as any).linkedIssues;
+    }
+
+    const seededByWorkId: Record<string, string[]> = {
+      '1': ['1', '11', '19'],
+      '2': ['2', '8', '14'],
+      '3': ['3', '10', '13'],
+      '4': ['4', '6', '16']
+    };
+
+    return seededByWorkId[String(work.id)] || ['1', '11', '19'];
+  });
   
   // Individual users for recipient selection
   const individualUsers = [
@@ -208,7 +241,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Objected to the proposed timing and asked for the observation window to be confirmed in writing.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 1,
       documentName: 'Notice of intention'
     },
@@ -236,7 +269,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'post',
       message: 'Objected to the proposed scope and asked whether patch repairs were considered instead of full replacement.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -250,7 +283,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'phone',
       message: 'Asked whether the specification can be shared in full before the observation deadline.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -264,7 +297,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Objected to the proposed timetable and said the notice period feels too short.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -306,7 +339,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'post',
       message: 'Objected to the scope on cost grounds and asked for estimated individual contributions.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -320,7 +353,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Asked if scaffold access will affect parking bays during the works.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -348,7 +381,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'phone',
       message: 'Objected to the proposal and said previous roof repairs should be reviewed first.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -376,7 +409,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Sent a second response asking whether weekend access will be required for intrusive inspections.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 5,
       documentName: 'Initial Section 20 Notice to Lease...'
     },
@@ -404,7 +437,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Asked for the FAQ to confirm whether payment plans may be available if the contribution is high.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 6,
       documentName: 'Leaseholder FAQ Document'
     },
@@ -418,7 +451,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Objected to the lowest quote being favoured without a clearer quality comparison.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -432,7 +465,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Requested copies of the alternative contractor submissions before making a decision.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -474,7 +507,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'post',
       message: 'Objected to any appointment before the nominated contractor review is complete.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 9,
       documentName: 'Contractor Quote - Premier Roofing'
     },
@@ -502,7 +535,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Wanted clarification on programme length differences between the contractor submissions.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 9,
       documentName: 'Contractor Quote - Premier Roofing'
     },
@@ -516,7 +549,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'phone',
       message: 'Queried whether nominated contractors would still be considered after the statement of estimates is issued.',
       isObjection: false,
-      status: 'responded'
+      status: 'addressed'
     },
     {
       id: 'obs-25',
@@ -542,7 +575,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Requested confirmation of the deadline for written observations under the notice.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 1,
       documentName: 'Notice of intention'
     },
@@ -556,7 +589,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Objected to the wording of the notice and asked for the consultation stage labels to be clarified.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 1,
       documentName: 'Notice of intention'
     },
@@ -570,7 +603,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Asked whether the FAQ will be updated once formal estimates are issued.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 6,
       documentName: 'Leaseholder FAQ Document'
     },
@@ -584,7 +617,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Requested that the FAQ include a note on when contractors may need access to loft spaces.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 6,
       documentName: 'Leaseholder FAQ Document'
     },
@@ -612,7 +645,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'phone',
       message: 'Objected to progressing with ABC without a written comparison against the other tenders.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -626,7 +659,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Asked whether ABC includes all scaffold and making-good costs in the quoted total.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -654,7 +687,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Requested a copy of the ABC insurance schedule before progressing the review.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -668,7 +701,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'post',
       message: 'Objected to the ABC quote on value-for-money grounds and requested all tender clarifications.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -682,7 +715,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Asked whether ABC has priced for resident liaison during the scaffold period.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -710,7 +743,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'phone',
       message: 'Asked whether ABC has allowed for access protection in top-floor flats during roof strip-out.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 7,
       documentName: 'Contractor Quote - ABC Building...'
     },
@@ -724,7 +757,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Asked if the XYZ quote includes the same provisional sums as the other tenders.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 8,
       documentName: 'Contractor Quote - XYZ Constru...'
     },
@@ -738,7 +771,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Objected to the XYZ quote progressing without clarification on programme length.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 8,
       documentName: 'Contractor Quote - XYZ Constru...'
     },
@@ -780,7 +813,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'portal',
       message: 'Asked for an explanation of the price difference between Premier and the next lowest quote.',
       isObjection: false,
-      status: 'new',
+      status: 'no-action',
       documentId: 9,
       documentName: 'Contractor Quote - Premier Roofing'
     },
@@ -794,7 +827,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'phone',
       message: 'Objected to appointing Premier Roofing before residents have seen the tender comparison summary.',
       isObjection: true,
-      status: 'new',
+      status: 'no-action',
       documentId: 9,
       documentName: 'Contractor Quote - Premier Roofing'
     },
@@ -808,7 +841,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       channel: 'email',
       message: 'Asked if Premier Roofing has priced for additional insulation upgrades at the same time.',
       isObjection: false,
-      status: 'responded',
+      status: 'addressed',
       documentId: 9,
       documentName: 'Contractor Quote - Premier Roofing'
     },
@@ -916,6 +949,200 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       { name: 'Award of contract', type: 'Letter', category: 'consultation', stage: 'Award', status: 'Draft' }
     ];
   };
+
+  const getDefaultConsultationTemplateName = (documentName: string) => {
+    const normalizedName = documentName.toLowerCase();
+    if (normalizedName.includes('notice of intention')) return 'Notice of intention - standard';
+    if (normalizedName.includes('statement of estimate') || normalizedName.includes('estimate')) return 'Statement of estimate - standard';
+    if (normalizedName.includes('notice of reasons')) return 'Notice of reasons - standard';
+    if (normalizedName.includes('notice of award')) return 'Notice of award - standard';
+    if (normalizedName.includes('faq')) return 'Leaseholder FAQ - standard';
+    if (normalizedName.includes('quote')) return 'Quote pack - standard';
+    return 'Standard consultation wording';
+  };
+
+  const getDefaultConsultationBody = (documentName: string, stage?: string) => `To: {{leaseholder_name}}
+Property: {{leaseholder_property}}
+Postal address: {{postal_address}}
+And: [Recognised Tenants' Association, if applicable]
+
+Section 20 Consultation Notice (Draft)
+Document: ${documentName}
+Stage: ${stage || 'Consultation'}
+Premises: [Building / block name]
+Landlord or Manager: [Entity name]
+
+1. This notice is issued as part of the statutory consultation process for qualifying works.
+
+2. Summary of the proposed works:
+[Insert scope summary]
+
+3. Reasons for the works:
+[Insert reasons]
+
+4. Written observations should be sent to:
+[Insert postal / email address]
+
+5. Consultation deadline:
+{{consultation_deadline}}
+
+Signed: [Name]
+For and on behalf of: [Landlord / Manager / Authorised Agent]
+Date of notice: [Insert date]`;
+
+  const normalizeConsultationDocumentType = (documentName: string, documentType: string) => {
+    const normalizedName = String(documentName || '').toLowerCase();
+    if (normalizedName.includes('notice')) {
+      return 'Notice';
+    }
+    return documentType;
+  };
+
+  const LEGAL_NOTICE_WAIT_DAYS = 30;
+  const LEGAL_NOTICE_RULES = [
+    {
+      stageIds: ['notice-intention'],
+      stageNames: ['notice of intention'],
+      documentStages: ['notice of intention'],
+      sentTaskId: 'noi-issued'
+    },
+    {
+      stageIds: ['statement-estimate'],
+      stageNames: ['statement of estimate'],
+      documentStages: ['statement of estimate'],
+      sentTaskId: 'statement-sent'
+    },
+    {
+      stageIds: ['notice-reasons'],
+      stageNames: ['notice of reasons', 'notice of award'],
+      documentStages: ['notice of reasons', 'notice of award'],
+      sentTaskId: 'issued-leaseholders'
+    }
+  ] as const;
+
+  const normalizeLookup = (value: string) => value.trim().toLowerCase().replace(/\s+/g, ' ');
+
+  const parseUkDate = (value?: string | null) => {
+    if (!value) return null;
+    const trimmed = value.trim();
+    const direct = new Date(trimmed);
+    if (!Number.isNaN(direct.getTime())) {
+      return direct;
+    }
+
+    const match = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,\s*(\d{1,2}):(\d{2}))?/);
+    if (!match) return null;
+
+    const [, day, month, year, hour = '0', minute = '0'] = match;
+    const parsed = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const findLegalNoticeRule = (stageId: string, stageName?: string) => {
+    const normalizedStageId = normalizeLookup(stageId);
+    const normalizedStageName = normalizeLookup(stageName || '');
+    return LEGAL_NOTICE_RULES.find(rule =>
+      rule.stageIds.includes(normalizedStageId as (typeof rule.stageIds)[number]) ||
+      rule.stageNames.includes(normalizedStageName as (typeof rule.stageNames)[number])
+    );
+  };
+
+  const getRuleSentDate = (rule: (typeof LEGAL_NOTICE_RULES)[number], docs: any[]) => {
+    const matchingSentDates = docs
+      .filter(doc => {
+        const normalizedType = normalizeLookup(String(doc.type || ''));
+        const normalizedStage = normalizeLookup(String(doc.stage || ''));
+        const normalizedName = normalizeLookup(String(doc.name || ''));
+        const isNoticeDocument = normalizedType === 'notice' || normalizedName.includes('notice');
+        const matchesStage =
+          rule.documentStages.includes(normalizedStage as (typeof rule.documentStages)[number]) ||
+          rule.stageNames.some(stageName => normalizedName.includes(stageName));
+
+        return doc.category === 'consultation' && isNoticeDocument && matchesStage && Boolean(doc.sentDate);
+      })
+      .map(doc => String(doc.sentDate));
+
+    if (matchingSentDates.length === 0) {
+      return null;
+    }
+
+    return matchingSentDates
+      .map(value => ({ value, parsed: parseUkDate(value) }))
+      .filter(item => item.parsed)
+      .sort((a, b) => (b.parsed as Date).getTime() - (a.parsed as Date).getTime())[0]?.value || matchingSentDates[0];
+  };
+
+  const getRemainingLegalWaitDays = (sentDateValue?: string | null) => {
+    if (!sentDateValue) {
+      return LEGAL_NOTICE_WAIT_DAYS;
+    }
+
+    const sentDate = parseUkDate(sentDateValue);
+    if (!sentDate) {
+      return LEGAL_NOTICE_WAIT_DAYS;
+    }
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfSentDay = new Date(sentDate);
+    startOfSentDay.setHours(0, 0, 0, 0);
+
+    const elapsedDays = Math.max(0, Math.floor((startOfToday.getTime() - startOfSentDay.getTime()) / dayMs));
+    return Math.max(0, LEGAL_NOTICE_WAIT_DAYS - elapsedDays);
+  };
+
+  const getNoticeSendPrerequisite = (targetStage?: string | null, docs: any[] = documents) => {
+    if (isDispensationWork) {
+      return null;
+    }
+
+    const normalizedTargetStage = normalizeLookup(String(targetStage || ''));
+    const prerequisiteRule =
+      normalizedTargetStage === 'statement of estimate'
+        ? LEGAL_NOTICE_RULES[0]
+        : normalizedTargetStage === 'notice of reasons' || normalizedTargetStage === 'notice of award'
+          ? LEGAL_NOTICE_RULES[1]
+          : null;
+
+    if (!prerequisiteRule) {
+      return null;
+    }
+
+    const sentDate = getRuleSentDate(prerequisiteRule, docs);
+    const remainingDays = getRemainingLegalWaitDays(sentDate);
+    if (remainingDays <= 0) {
+      return null;
+    }
+
+    return {
+      type: 'cooldown' as const,
+      blockedStageName:
+        prerequisiteRule.stageNames[0]
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' '),
+      requiredDays: LEGAL_NOTICE_WAIT_DAYS,
+      remainingDays,
+      sentDate: sentDate || undefined
+    };
+  };
+
+  const withConsultationDefaults = (document: any) => {
+    if (document.category !== 'consultation') {
+      return document;
+    }
+
+    return {
+      ...document,
+      type: normalizeConsultationDocumentType(document.name, document.type),
+      templateId: document.templateId || `template-${String(document.id)}`,
+      templateName: document.templateName || getDefaultConsultationTemplateName(document.name),
+      body: document.body || getDefaultConsultationBody(document.name, document.stage),
+      contentSource: document.contentSource || 'template',
+      uploadedFileName: document.uploadedFileName || ''
+    };
+  };
   
   // Initialize documents from formData
   const getInitialDocuments = () => {
@@ -956,7 +1183,8 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
                 { label: 'Leaseholders', count: leaseholderCount }
               ],
               lastUpdated: new Date().toLocaleDateString('en-GB') + ', ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-              lastUpdatedBy: 'System'
+              lastUpdatedBy: 'System',
+              body: getDefaultConsultationBody(doc.name, doc.stage || 'Consultation')
             });
           } else {
             // Project documents (technical, financial, legal, etc)
@@ -986,11 +1214,11 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         });
       }
       
-      return docs;
+      return docs.map(withConsultationDefaults);
     }
     
     // Default documents for existing projects
-    return [
+    const defaultExistingDocuments: any[] = [
       {
         id: 1,
         name: 'Notice of intention',
@@ -1186,6 +1414,74 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       lastUpdated: '05/11/2025, 09:30',
       lastUpdatedBy: 'Sarah Mitchell'
     }];
+
+    if (['1', '3', '8'].includes(String(work.id))) {
+      let nextId = defaultExistingDocuments.reduce((maxId, doc) => Math.max(maxId, Number(doc.id) || 0), 0) + 1;
+      const addDocument = (document: any) => {
+        if (
+          defaultExistingDocuments.some(
+            existing =>
+              existing.category === 'consultation' &&
+              normalizeLookup(String(existing.type || '')) === 'notice' &&
+              normalizeLookup(String(existing.stage || '')) === normalizeLookup(String(document.stage || ''))
+          )
+        ) {
+          return;
+        }
+
+        defaultExistingDocuments.push({
+          ...document,
+          id: nextId++
+        });
+      };
+
+      addDocument({
+        name: 'Statement of estimate',
+        type: 'Notice',
+        category: 'consultation',
+        stage: 'Statement of estimate',
+        status: String(work.id) === '3' ? 'Sent' : 'Draft',
+        dueDate: '24/11/2025',
+        sentDate: String(work.id) === '3' ? '24/11/2025' : null,
+        isOverdue: String(work.id) !== '3',
+        isDueSoon: false,
+        recipients: [{ label: 'Leaseholders', count: 42 }],
+        lastUpdated: '24/11/2025, 10:10',
+        lastUpdatedBy: 'Sarah Mitchell'
+      });
+
+      addDocument({
+        name: 'Notice of reasons',
+        type: 'Notice',
+        category: 'consultation',
+        stage: 'Notice of reasons',
+        status: String(work.id) === '3' ? 'Sent' : 'Draft',
+        dueDate: '30/11/2025',
+        sentDate: String(work.id) === '3' ? '30/11/2025' : null,
+        isOverdue: String(work.id) !== '3',
+        isDueSoon: false,
+        recipients: [{ label: 'Leaseholders', count: 42 }],
+        lastUpdated: '30/11/2025, 12:05',
+        lastUpdatedBy: 'James Cooper'
+      });
+
+      addDocument({
+        name: 'Notice of award',
+        type: 'Notice',
+        category: 'consultation',
+        stage: 'Notice of award',
+        status: String(work.id) === '3' ? 'Sent' : 'Draft',
+        dueDate: '04/12/2025',
+        sentDate: String(work.id) === '3' ? '04/12/2025' : null,
+        isOverdue: String(work.id) !== '3',
+        isDueSoon: false,
+        recipients: [{ label: 'Leaseholders', count: 42 }],
+        lastUpdated: '04/12/2025, 09:45',
+        lastUpdatedBy: 'Sarah Mitchell'
+      });
+    }
+
+    return defaultExistingDocuments.map(withConsultationDefaults);
   };
   
   const [documents, setDocuments] = useState(getInitialDocuments());
@@ -1243,7 +1539,8 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         name: user.name,
         unit: `Flat ${101 + index}`,
         avatar: user.avatar,
-        postalAddress: `${101 + index} Riverside Court, ${propertyInfo.address.split('•')[0].trim()}, London`
+        postalAddress: `${101 + index} Riverside Court, ${propertyInfo.address.split('•')[0].trim()}, London`,
+        email: index % 7 === 0 ? '' : `${user.name.toLowerCase().replace(/\s+/g, '.')}@example.com`
       }));
     const fallbackNames = [
       'Olivia Harris', 'Noah Turner', 'Sophia Walker', 'Liam Hall', 'Grace Young', 'Ethan King',
@@ -1264,12 +1561,60 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         name,
         unit: `Flat ${flatNumber}`,
         avatar: name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase(),
+        email:
+          index % 6 === 0
+            ? ''
+            : `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`,
         postalAddress: `${flatNumber} Riverside Court, ${propertyInfo.address.split('•')[0].trim()}, London`
       };
     });
 
     return [...seededLeaseholders, ...generatedLeaseholders];
   }, [individualUsers, leaseholderCount, propertyInfo.address]);
+
+  const recalculateStageSequence = (stageList: Stage[]): Stage[] => {
+    let allPreviousStagesCompleted = true;
+
+    return stageList.map(stage => {
+      const completedCount = stage.tasks.filter(task => task.completed).length;
+      const totalCount = stage.tasks.length;
+      const allTasksCompleted = totalCount > 0 && completedCount === totalCount;
+
+      let nextStatus: Stage['status'] = 'pending';
+      if (allTasksCompleted) {
+        nextStatus = 'completed';
+      } else if (allPreviousStagesCompleted) {
+        nextStatus = 'active';
+      }
+
+      const nextStage: Stage = {
+        ...stage,
+        status: nextStatus
+      };
+
+      if (nextStatus === 'pending') {
+        delete nextStage.deadline;
+        delete nextStage.isDelayed;
+      } else if (nextStatus === 'active') {
+        if (stage.deadline) {
+          const becameActiveFromPending = stage.status === 'pending';
+          nextStage.deadline = becameActiveFromPending
+            ? {
+                daysLeft: stage.deadline.totalDays,
+                totalDays: stage.deadline.totalDays
+              }
+            : stage.deadline;
+          nextStage.isDelayed = becameActiveFromPending ? false : Boolean(stage.isDelayed);
+        }
+      } else {
+        delete nextStage.deadline;
+        delete nextStage.isDelayed;
+      }
+
+      allPreviousStagesCompleted = allPreviousStagesCompleted && allTasksCompleted;
+      return nextStage;
+    });
+  };
   
   // Check if all stages should be marked as completed
   const isCompleted = work.status === 'Completed';
@@ -1442,56 +1787,181 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   };
   
   const [stages, setStages] = useState<Stage[]>(getInitialStages());
+  useEffect(() => {
+    setStages(prev => applyLegalNoticeSyncToStages(prev, documents));
+  }, [documents]);
 
-  const respondedLeaseholderCount = new Set(observations.map(observation => observation.leaseholderId)).size;
-  const totalObservationEntries = observations.length;
-  const objectionCount = observations.filter(observation => observation.isObjection).length;
+  const leaseholderObservations = useMemo(
+    () => observations.filter(observation =>
+      ['notice-of-intention', 'statement-of-estimate', 'notice-of-reasons'].includes(observation.stage)
+    ),
+    [observations]
+  );
+  const respondedLeaseholderCount = new Set(leaseholderObservations.map(observation => observation.leaseholderId)).size;
+  const totalObservationEntries = leaseholderObservations.length;
+  const objectionCount = leaseholderObservations.filter(observation => observation.isObjection).length;
   const currentStageDocuments = useMemo(
     () => documents.filter((document: any) => document.category === 'consultation'),
     [documents]
   );
 
-  const unresolvedObservationCount = observations.filter(observation => observation.status !== 'responded').length;
-  const addressedObservationCount = observations.filter(observation => observation.status === 'responded').length;
-  const isObservationPriorityStage = ['first-notice', 'statement-of-estimate', 'notice-of-reasons'].includes(currentConsultationStage);
+  const unresolvedObservationCount = leaseholderObservations.filter(observation => observation.status !== 'addressed').length;
+  const addressedObservationCount = leaseholderObservations.filter(observation => observation.status === 'addressed').length;
+  const isObservationPriorityStage = ['notice-of-intention', 'first-notice', 'tenders', 'statement-of-estimate', 'notice-of-reasons'].includes(currentConsultationStage);
 
   const observationNoticeSummaries = useMemo(() => {
-    const summaryMap = new Map<string, {
-      documentId: string | number;
+    const grouped = leaseholderObservations.reduce<Record<string, {
+      key: string;
+      documentId?: string | number;
       documentName: string;
       stage: ConsultationStage;
       responses: number;
       objections: number;
-      latestReceivedOn?: string;
-    }>();
-
-    observations.forEach(observation => {
-      const key = String(observation.documentId || observation.stage);
-      const existing = summaryMap.get(key);
+      latestReceivedOn: string;
+    }>>((acc, observation) => {
+      const key = String(observation.documentId ?? observation.documentName ?? observation.stage);
+      const existing = acc[key];
 
       if (!existing) {
-        summaryMap.set(key, {
-          documentId: observation.documentId || key,
+        acc[key] = {
+          key,
+          documentId: observation.documentId,
           documentName: observation.documentName || CONSULTATION_STAGE_LABELS[observation.stage],
           stage: observation.stage,
           responses: 1,
           objections: observation.isObjection ? 1 : 0,
           latestReceivedOn: observation.receivedOn
-        });
-        return;
+        };
+        return acc;
       }
 
       existing.responses += 1;
-      existing.objections += observation.isObjection ? 1 : 0;
-      if (!existing.latestReceivedOn || new Date(observation.receivedOn).getTime() > new Date(existing.latestReceivedOn).getTime()) {
+      if (observation.isObjection) {
+        existing.objections += 1;
+      }
+      if (new Date(observation.receivedOn).getTime() > new Date(existing.latestReceivedOn).getTime()) {
         existing.latestReceivedOn = observation.receivedOn;
       }
-    });
 
-    return Array.from(summaryMap.values()).sort((a, b) =>
-      new Date(b.latestReceivedOn || 0).getTime() - new Date(a.latestReceivedOn || 0).getTime()
-    );
-  }, [observations]);
+      return acc;
+    }, {});
+
+    return Object.values(grouped)
+      .sort((a, b) => new Date(b.latestReceivedOn).getTime() - new Date(a.latestReceivedOn).getTime())
+      .slice(0, 3);
+  }, [leaseholderObservations]);
+
+  const contractorQuoteData = useMemo(() => {
+    if (isNewWork) {
+      return null;
+    }
+
+    const stageFallbackMap: Record<string, ConsultationStage> = {
+      'notice of intention': 'notice-of-intention',
+      'first notice': 'first-notice',
+      tender: 'tenders',
+      tenders: 'tenders',
+      'statement of estimate': 'statement-of-estimate',
+      'notice of reasons': 'notice-of-reasons',
+      'ongoing works': 'ongoing-works',
+      completion: 'completion'
+    };
+
+    const linkedQuoteIssueIds = linkedIssues.length > 0 ? linkedIssues.slice(0, 4) : ['1', '11', '19', '20'];
+    const linkedQuoteIssues = linkedQuoteIssueIds
+      .map((issueId) => allIssues.find(issue => issue.id === issueId))
+      .filter(Boolean);
+
+    const quoteRows = [
+      {
+        contractor: 'Apex Roofing',
+        issueRef: linkedQuoteIssues[0]?.issueRef ?? '#IS2001',
+        requestTitle: 'Riverside Roof major works quote',
+        status: 'Quote received',
+        quoteValue: '£118,400',
+        nominatedByLeaseholders: false
+      },
+      {
+        contractor: 'Premier Restoration',
+        issueRef: linkedQuoteIssues[1]?.issueRef ?? '#IS2011',
+        requestTitle: 'Riverside Roof major works quote',
+        status: 'Quote received',
+        quoteValue: '£124,900',
+        nominatedByLeaseholders: true
+      },
+      {
+        contractor: 'BuildRight',
+        issueRef: linkedQuoteIssues[2]?.issueRef ?? '#IS2019',
+        requestTitle: 'Riverside Roof major works quote',
+        status: 'Clarification pending',
+        quoteValue: '£131,250',
+        nominatedByLeaseholders: false
+      },
+      {
+        contractor: 'SafeAccess Group',
+        issueRef: linkedQuoteIssues[3]?.issueRef ?? '#IS2020',
+        requestTitle: 'Riverside Roof major works quote',
+        status: 'Requested',
+        quoteValue: null,
+        nominatedByLeaseholders: false
+      },
+      {
+        contractor: 'Vertex Roofing',
+        issueRef: linkedQuoteIssues[4]?.issueRef ?? '#IS2021',
+        requestTitle: 'Riverside Roof major works quote',
+        status: 'Requested',
+        quoteValue: null,
+        nominatedByLeaseholders: false
+      }
+    ];
+
+    const currentStage =
+      work.formData?.consultationStage ||
+      stageFallbackMap[(work.stage || '').toLowerCase()] ||
+      'notice-of-intention';
+    const quoteAccepted = work.formData?.lowestQuoteAccepted ?? lowestQuoteAccepted;
+    const visibleRows =
+      currentStage === 'notice-of-intention'
+        ? quoteRows.slice(0, 3).map(row => ({
+            ...row,
+            status: 'Requested',
+            quoteValue: null
+          }))
+        : currentStage === 'tenders' || currentStage === 'statement-of-estimate' || currentStage === 'notice-of-reasons' || currentStage === 'ongoing-works' || currentStage === 'completion' || quoteAccepted
+          ? quoteRows
+          : quoteRows.slice(0, 3);
+
+    const quotesReceived = visibleRows.filter(row => row.status === 'Quote received' || row.status === 'Clarification pending').length;
+    const lowestQuote = visibleRows
+      .filter(row => row.quoteValue)
+      .map(row => Number(row.quoteValue?.replace(/[^0-9.]/g, '')))
+      .filter(value => !Number.isNaN(value))
+      .sort((a, b) => a - b)[0];
+    const nominatedCount = visibleRows.filter(row => row.nominatedByLeaseholders).length;
+    const recommendedContractor = quoteAccepted ? 'Apex Roofing' : quotesReceived >= 2 ? 'Apex Roofing' : null;
+    const selectedContractor =
+      visibleRows.find(row => row.contractor === 'Apex Roofing') ??
+      visibleRows.find(row => row.status === 'Quote received') ??
+      visibleRows[0];
+    const showSelectedContractorMode =
+      quoteAccepted ||
+      currentStage === 'statement-of-estimate' ||
+      currentStage === 'notice-of-reasons' ||
+      currentStage === 'ongoing-works' ||
+      currentStage === 'completion';
+
+    return {
+      currentStage,
+      requestedCount: visibleRows.length,
+      quotesReceived,
+      lowestQuote: lowestQuote ? `£${lowestQuote.toLocaleString()}` : 'Awaiting quotes',
+      nominatedCount,
+      recommendedContractor,
+      rows: visibleRows,
+      selectedContractor,
+      showSelectedContractorMode
+    };
+  }, [allIssues, isNewWork, linkedIssues, lowestQuoteAccepted, work.formData?.consultationStage, work.formData?.lowestQuoteAccepted]);
 
   const overviewAttentionItems = useMemo(() => {
     if (isNewWork) {
@@ -1566,6 +2036,21 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       });
     }
 
+    if (contractorQuoteData && !contractorQuoteData.showSelectedContractorMode) {
+      const pendingQuotes = contractorQuoteData.rows.filter(row => row.status !== 'Quote received').length;
+      if (pendingQuotes > 0) {
+        items.push({
+          source: 'Contractors',
+          title: `${pendingQuotes} contractor quote${pendingQuotes === 1 ? '' : 's'} still pending`,
+          where: 'Tender / quote requests',
+          detail: 'Quote activity is still live and may affect the recommendation.',
+          tone: 'warning',
+          actionLabel: 'Open issues',
+          targetTab: 'issues'
+        });
+      }
+    }
+
     const generatedButNotSent = currentStageDocuments.filter((document: any) => document.postalPackGeneratedAt && !document.sentDate);
     if (generatedButNotSent.length > 0) {
       items.push({
@@ -1581,14 +2066,34 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       });
     }
 
+    const sentConsultationDocs = currentStageDocuments.filter((document: any) => Boolean(document.sentDate));
+    const idSeed = Array.from(String(work.id || '0')).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const bouncedEmailCount = sentConsultationDocs.length > 0 ? idSeed % 4 : 0;
+    if (bouncedEmailCount > 0) {
+      items.push({
+        source: 'Delivery',
+        title: `${bouncedEmailCount} email${bouncedEmailCount === 1 ? '' : 's'} bounced back`,
+        where: sentConsultationDocs[0]?.name || 'Recently sent notice',
+        when: sentConsultationDocs[0]?.sentDate,
+        detail: 'Update the missing/invalid email and re-serve to keep coverage complete.',
+        tone: bouncedEmailCount >= 2 ? 'critical' : 'warning',
+        actionLabel: 'Open delivery',
+        targetTab: 'documents',
+        targetDocumentId: sentConsultationDocs[0]?.id
+      });
+    }
+
     return items.slice(0, 4);
   }, [
+    contractorQuoteData,
     currentStageDocuments,
     isNewWork,
     isObservationPriorityStage,
     objectionCount,
     observationNoticeSummaries,
-    unresolvedObservationCount
+    unresolvedObservationCount,
+    work.id,
+    work.status
   ]);
 
   const overviewKeyUpdates = useMemo(() => {
@@ -1666,6 +2171,23 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       });
     }
 
+    if (contractorQuoteData) {
+      updates.push({
+        source: 'Contractors',
+        title: contractorQuoteData.showSelectedContractorMode ? `Quote selected: ${contractorQuoteData.selectedContractor?.contractor ?? 'Selected contractor'}` : 'Contractor quote progress updated',
+        where: contractorQuoteData.showSelectedContractorMode
+          ? contractorQuoteData.selectedContractor?.contractor ?? 'Selected contractor'
+          : 'Tender / quote requests',
+        when: formatUpdateTimestamp(currentStageDocuments[0]?.lastUpdated),
+        actor: 'Property manager',
+        detail: contractorQuoteData.showSelectedContractorMode
+          ? `${contractorQuoteData.selectedContractor?.contractor ?? 'Contractor'} progressing at ${contractorQuoteData.selectedContractor?.quoteValue ?? 'quote TBC'}`
+          : `${contractorQuoteData.quotesReceived}/${contractorQuoteData.requestedCount} quotes returned${contractorQuoteData.nominatedCount ? `, ${contractorQuoteData.nominatedCount} leaseholder-nominated` : ''}`,
+        actionLabel: 'Open issues',
+        targetTab: 'issues'
+      });
+    }
+
     if (cdmAssessment || tendersCdmAssessment || cdmAdditionalChecks.hseF10Submitted) {
       updates.push({
         source: 'Compliance',
@@ -1683,6 +2205,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   }, [
     cdmAdditionalChecks.hseF10Submitted,
     cdmAssessment,
+    contractorQuoteData,
     currentStageDocuments,
     isNewWork,
     observationNoticeSummaries,
@@ -1713,29 +2236,89 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
     setExpandedStage(prev => prev === stageId ? null : stageId);
   };
 
-  // Check if a stage can have its tasks checked (all previous stages must be completed)
-  const canCheckTasks = (stageId: string) => {
+  const isDispensationWork = work.status === 'Dispensation';
+
+  const applyLegalNoticeSyncToStages = (stageList: Stage[], docs: any[]) =>
+    recalculateStageSequence(
+      stageList.map(stage => {
+        const legalRule = findLegalNoticeRule(stage.id, stage.name);
+        if (!legalRule) {
+          return stage;
+        }
+
+        const sentDate = getRuleSentDate(legalRule, docs);
+        const noticeSent = Boolean(sentDate);
+        const updatedTasks = stage.tasks.map(task =>
+          task.id === legalRule.sentTaskId
+            ? { ...task, completed: noticeSent }
+            : task
+        );
+
+        const nextStage: Stage = {
+          ...stage,
+          tasks: updatedTasks
+        };
+
+        if (noticeSent) {
+          delete nextStage.deadline;
+          nextStage.isDelayed = false;
+        }
+
+        return nextStage;
+      })
+    );
+
+  const getBlockingPreviousStage = (stageId: string) => {
     const stageIndex = stages.findIndex(s => s.id === stageId);
-    // Check all previous stages
     for (let i = 0; i < stageIndex; i++) {
       const prevStage = stages[i];
-      const allTasksCompleted = prevStage.tasks.every(task => task.completed);
-      if (!allTasksCompleted) {
-        return false;
+      const incompleteTasks = prevStage.tasks.filter(task => !task.completed);
+      if (incompleteTasks.length > 0) {
+        return {
+          type: 'tasks' as const,
+          blockedStageName: prevStage.name,
+          incompleteCount: incompleteTasks.length
+        };
+      }
+
+      if (!isDispensationWork) {
+        const legalRule = findLegalNoticeRule(prevStage.id, prevStage.name);
+        if (legalRule) {
+          const sentDate = getRuleSentDate(legalRule, documents);
+          const remainingDays = getRemainingLegalWaitDays(sentDate);
+          if (remainingDays > 0) {
+            return {
+              type: 'cooldown' as const,
+              blockedStageName: prevStage.name,
+              requiredDays: LEGAL_NOTICE_WAIT_DAYS,
+              remainingDays,
+              sentDate: sentDate || undefined
+            };
+          }
+        }
       }
     }
-    return true;
+    return null;
+  };
+
+  const isTaskControlledByNoticeSend = (stageId: string, stageName: string, taskId: string) => {
+    if (isDispensationWork) {
+      return false;
+    }
+
+    const legalRule = findLegalNoticeRule(stageId, stageName);
+    return Boolean(legalRule && legalRule.sentTaskId === taskId);
   };
 
   const toggleTask = (stageId: string, taskId: string) => {
-    // Check if this stage can have tasks checked
-    if (!canCheckTasks(stageId)) {
-      alert('Please complete all tasks in previous stages first.');
+    const blockingStage = getBlockingPreviousStage(stageId);
+    if (blockingStage) {
+      setStageProgressWarning(blockingStage);
       return;
     }
 
     setStages(prev =>
-      prev.map((stage, index) => {
+      recalculateStageSequence(prev.map(stage => {
         if (stage.id === stageId) {
           // Update the task
           const updatedTasks = stage.tasks.map(task =>
@@ -1743,32 +2326,21 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
               ? { ...task, completed: !task.completed }
               : task
           );
-          
-          // Determine new status based on tasks
-          const completedCount = updatedTasks.filter(t => t.completed).length;
-          const totalCount = updatedTasks.length;
-          
-          let newStatus: 'completed' | 'active' | 'pending' = 'pending';
-          if (completedCount === totalCount) {
-            newStatus = 'completed';
-          } else if (completedCount > 0) {
-            newStatus = 'active';
-          }
-          
+
           return {
             ...stage,
-            tasks: updatedTasks,
-            status: newStatus
+            tasks: updatedTasks
           };
         }
         return stage;
-      })
+      }))
     );
   };
 
   const toggleCdmCheck = (stageId: string, checkName: string, currentValue: boolean) => {
-    if (!canCheckTasks(stageId)) {
-      alert('Please complete all tasks in previous stages first.');
+    const blockingStage = getBlockingPreviousStage(stageId);
+    if (blockingStage) {
+      setStageProgressWarning(blockingStage);
       return;
     }
 
@@ -1898,6 +2470,26 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
     return 0;
   });
 
+  const documentObservationSummary = useMemo(() => {
+    return observations.reduce<Record<string, { total: number; unresolved: number }>>((acc, observation) => {
+      const key = String(observation.documentId ?? '');
+      if (!key) {
+        return acc;
+      }
+
+      if (!acc[key]) {
+        acc[key] = { total: 0, unresolved: 0 };
+      }
+
+      acc[key].total += 1;
+      if (observation.status !== 'addressed') {
+        acc[key].unresolved += 1;
+      }
+
+      return acc;
+    }, {});
+  }, [observations]);
+
   const handleObservationStatusChange = (observationId: string, status: Observation['status']) => {
     setObservations(prev =>
       prev.map(observation =>
@@ -1933,7 +2525,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         channel: form.channel,
         message: form.message.trim(),
         isObjection: form.isObjection,
-        status: 'new',
+        status: form.status,
         documentId: document.id,
         documentName: document.name
       },
@@ -1963,7 +2555,8 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
               leaseholderName: leaseholder.name,
               channel: form.channel,
               message: form.message.trim(),
-              isObjection: form.isObjection
+              isObjection: form.isObjection,
+              status: form.status
             }
           : observation
       )
@@ -2005,11 +2598,27 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   const handleDocumentSubmit = (data: any) => {
     // Check if this is a project document or consultation document
     const isProjectDoc = !data.recipients;
+    const existingNoticeStageSet = new Set(
+      documents
+        .filter(document => document.category === 'consultation')
+        .map(document => document.stage)
+    );
+
+    if (!isProjectDoc && ['Notice of intention', 'Statement of estimate', 'Notice of reasons', 'Notice of award'].includes(data.stage) && existingNoticeStageSet.has(data.stage)) {
+      setShowNewDocumentModal(false);
+      return;
+    }
+
+    const normalizedDocumentName = data.documentName || 'Untitled Document';
+    const normalizedDocumentType = normalizeConsultationDocumentType(
+      normalizedDocumentName,
+      data.documentType.charAt(0).toUpperCase() + data.documentType.slice(1)
+    );
     
     const baseDocument = {
       id: documents.length + 1,
-      name: data.documentName || 'Untitled Document',
-      type: data.documentType.charAt(0).toUpperCase() + data.documentType.slice(1),
+      name: normalizedDocumentName,
+      type: normalizedDocumentType,
       lastUpdated: new Date().toLocaleDateString('en-GB', { 
         day: '2-digit', 
         month: '2-digit', 
@@ -2031,11 +2640,29 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       };
     } else {
       // Consultation document structure
+      const selectedRecipients = Object.entries(data.recipients || {})
+        .filter(([, value]) => value)
+        .map(([key]) => {
+          const recipientMap: { [key: string]: { label: string; count: number } } = {
+            leaseholders: { label: 'Leaseholders', count: 42 },
+            directors: { label: 'Directors', count: 4 },
+            managingAgents: { label: 'Managing agent', count: 1 },
+            freeholders: { label: 'Freeholders', count: 1 }
+          };
+          return recipientMap[key];
+        })
+        .filter(Boolean);
+
       newDocument = {
         ...baseDocument,
         category: 'consultation' as const,
         stage: data.stage || 'Not set',
         status: 'Draft',
+        contentSource: data.contentSource || (data.uploadedFile ? 'upload' : 'template'),
+        uploadedFileName: data.uploadedFile?.name || '',
+        templateId: data.templateId || `template-${documents.length + 1}`,
+        templateName: data.templateName || getDefaultConsultationTemplateName(data.documentName || 'Consultation document'),
+        body: data.templateText || getDefaultConsultationBody(data.documentName || 'Consultation document', data.stage || 'Not set'),
         dueDate: data.dueDate ? new Date(data.dueDate).toLocaleDateString('en-GB', { 
           day: '2-digit', 
           month: '2-digit', 
@@ -2044,17 +2671,10 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         sentDate: null,
         isOverdue: false,
         isDueSoon: false,
-        recipients: Object.entries(data.recipients)
-          .filter(([key, value]) => value)
-          .map(([key]) => {
-            const recipientMap: { [key: string]: { label: string; count: number } } = {
-              leaseholders: { label: 'Leaseholders', count: 42 },
-              directors: { label: 'Directors', count: 4 },
-              managingAgents: { label: 'Managing agent', count: 1 },
-              freeholders: { label: 'Freeholders', count: 1 }
-            };
-            return recipientMap[key];
-          })
+        recipients:
+          selectedRecipients.length > 0
+            ? selectedRecipients
+            : [{ label: 'Leaseholders', count: 42 }]
       };
     }
     
@@ -2064,13 +2684,32 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   };
 
   const handleDocumentUpdate = (documentId: number | string, updates: any) => {
-    setDocuments(prev =>
-      prev.map(document =>
+    const currentDocument = documents.find(document => document.id === documentId);
+    const isMarkingAsSent =
+      Boolean(updates?.sentDate) &&
+      (updates?.status === 'Sent' || currentDocument?.status !== 'Sent');
+    const isNoticeDocument =
+      currentDocument?.category === 'consultation' &&
+      normalizeLookup(String(currentDocument?.type || '')) === 'notice';
+
+    if (isMarkingAsSent && isNoticeDocument) {
+      const prerequisiteBlock = getNoticeSendPrerequisite(currentDocument?.stage, documents);
+      if (prerequisiteBlock) {
+        setStageProgressWarning(prerequisiteBlock);
+        return;
+      }
+    }
+
+    setDocuments(prev => {
+      const nextDocuments = prev.map(document =>
         document.id === documentId
           ? { ...document, ...updates }
           : document
-      )
-    );
+      );
+
+      setStages(prevStages => applyLegalNoticeSyncToStages(prevStages, nextDocuments));
+      return nextDocuments;
+    });
     setSelectedDocument((prev: any) =>
       prev && prev.id === documentId
         ? { ...prev, ...updates }
@@ -2090,6 +2729,8 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         return { backgroundColor: '#e5e7eb', color: '#4b5563', borderRadius: '16px' };
       case 'Awaiting approval': 
         return { backgroundColor: '#fef3c7', color: '#b45309', borderRadius: '16px' };
+      case 'Postal pack generated':
+        return { backgroundColor: '#e0f2fe', color: '#075985', borderRadius: '16px' };
       default: 
         return { backgroundColor: '#e5e7eb', color: '#4b5563', borderRadius: '16px' };
     }
@@ -2554,32 +3195,41 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
                       </>
                     )}
 
-                    {stage.tasks.map((task) => (
-                      <div key={task.id} className="col-md-4 mb-2">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`${stage.id}-${task.id}`}
-                            checked={task.completed}
-                            onChange={() => toggleTask(stage.id, task.id)}
-                            style={{ width: '20px', height: '20px', marginTop: '0.15rem' }}
-                          />
-                          <label 
-                            className="form-check-label ms-2" 
-                            htmlFor={`${stage.id}-${task.id}`}
-                            style={{ 
-                              textDecoration: task.completed ? 'line-through' : 'none',
-                              color: task.completed ? '#6c757d' : 'inherit',
-                              fontSize: '16px',
-                              lineHeight: '1.5'
-                            }}
-                          >
-                            {task.label}
-                          </label>
+                    {stage.tasks.map((task) => {
+                      const isNoticeControlledTask = isTaskControlledByNoticeSend(stage.id, stage.name, task.id);
+                      return (
+                        <div key={task.id} className="col-md-4 mb-2">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id={`${stage.id}-${task.id}`}
+                              checked={task.completed}
+                              onChange={() => toggleTask(stage.id, task.id)}
+                              disabled={isNoticeControlledTask}
+                              style={{ width: '20px', height: '20px', marginTop: '0.15rem' }}
+                            />
+                            <label
+                              className="form-check-label ms-2"
+                              htmlFor={`${stage.id}-${task.id}`}
+                              style={{
+                                textDecoration: task.completed ? 'line-through' : 'none',
+                                color: task.completed ? '#6c757d' : isNoticeControlledTask ? '#6c757d' : 'inherit',
+                                fontSize: '16px',
+                                lineHeight: '1.5'
+                              }}
+                            >
+                              {task.label}
+                              {isNoticeControlledTask && (
+                                <span className="d-block text-muted small mt-1">
+                                  Auto-updated when the matching notice is marked sent in Documents.
+                                </span>
+                              )}
+                            </label>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {stage.id === 'notice-reasons' && (Object.values(cdmReasons).some(v => v)) && (
                       <>
@@ -3328,92 +3978,66 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       {/* Other tabs content */}
       {activeTab === 'issues' && (
         <div>
-          {isNewWork ? (
-            /* Empty state for new works */
-            <div className="card border-0 shadow-sm">
-              <div className="card-body text-center py-5">
-                <div className="d-flex justify-content-center">
-                  <FileText size={64} className="text-muted mb-3 opacity-50" />
-                </div>
-                <h4 className="mb-3">No issues yet</h4>
-                <p className="text-muted mb-4">
-                  This major works project doesn't have any issues linked yet.
-                </p>
-                <button className="btn btn-primary d-flex align-items-center gap-2 mx-auto">
-                  <Plus size={18} />
-                  Link an issue
+          <div className="mb-4 d-flex justify-content-between align-items-center">
+            <h5 className="mb-0">Linked Issues</h5>
+            <div className="d-flex gap-2">
+              <button className="btn btn-outline-primary d-flex align-items-center gap-2">
+                <Plus size={18} />
+                Create Issue
+              </button>
+              {linkedIssues.length > 0 && (
+                <button
+                  className="btn d-flex align-items-center gap-2"
+                  onClick={() => setShowLinkIssueModal(true)}
+                  style={{ backgroundColor: '#0B81C5', color: 'white' }}
+                >
+                  <LinkIcon size={18} />
+                  Link Issue
                 </button>
-              </div>
+              )}
+            </div>
+          </div>
+
+          {linkedIssues.length === 0 ? (
+            <div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted">
+              <LinkIcon size={48} className="mb-3 opacity-50" />
+              <p className="text-center">No issues linked to this project yet</p>
+              <p className="small text-center mb-3">Click "Link Issue" to manually associate issues with this major works</p>
+              <button
+                className="btn d-flex align-items-center gap-2"
+                onClick={() => setShowLinkIssueModal(true)}
+                style={{ backgroundColor: '#0B81C5', color: 'white' }}
+              >
+                <LinkIcon size={18} />
+                Link Issue
+              </button>
             </div>
           ) : (
-            <>
-              {/* Search and New Issue header */}
-              <div className="d-flex justify-content-between align-items-center mb-4 gap-3">
-                <div className="d-flex align-items-center" style={{ flex: 1, maxWidth: '600px' }}>
-                  <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0">
-                      <Search size={18} className="text-muted" />
-                    </span>
-                    <input 
-                      type="text" 
-                      className="form-control border-start-0" 
-                      placeholder="Search issues"
-                      style={{ paddingLeft: '0' }}
-                    />
-                    <button className="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    </button>
+            <div className="list-group">
+              {linkedIssues.map((issueId) => {
+                const issue = allIssues.find(i => i.id === issueId);
+                if (!issue) return null;
+                return (
+                  <div key={issueId} className="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="fw-medium">{issue.title}</div>
+                      <small className="text-muted">{issue.issueRef} • {issue.building} • {issue.status}</small>
+                    </div>
+                    <div className="d-flex gap-2">
+                      <button className="btn btn-sm btn-outline-secondary" title="View issue">
+                        <LinkIcon size={16} />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={() => handleUnlinkIssue(issueId)}
+                      >
+                        <XIcon size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="d-flex gap-2">
-                  <button className="btn btn-outline-secondary d-flex align-items-center gap-2">
-                    <Plus size={18} />
-                    New issue
-                  </button>
-                  <button 
-                    className="btn btn-primary d-flex align-items-center gap-2"
-                    onClick={() => setShowLinkIssueModal(true)}
-                    style={{ backgroundColor: '#0B81C5', borderColor: '#0B81C5' }}
-                  >
-                    <LinkIcon size={18} />
-                    Link issues
-                  </button>
-                </div>
-              </div>
-
-              {/* Issues List */}
-              <div className="card border-0 shadow-sm">
-                <div className="card-body p-0">
-                  <div className="table-responsive">
-                    <table className="table table-hover mb-0">
-                      <tbody>
-                        {[...Array(10)].map((_, index) => (
-                          <tr key={index} style={{ cursor: 'pointer' }}>
-                            <td className="border-0 border-bottom py-3" style={{ width: '15%' }}>
-                              <div className="fw-medium">Ref: IS20366791</div>
-                              <div className="text-muted small">Raised: Mon 24 Nov</div>
-                            </td>
-                            <td className="border-0 border-bottom py-3" style={{ width: '30%' }}>
-                              <div className="fw-medium">Other (Flat roof)</div>
-                              <div className="text-muted small">17 Daylesford Grove, Burnham, SL1 5AX</div>
-                            </td>
-                            <td className="border-0 border-bottom py-3" style={{ width: '25%' }}>
-                              <div className="fw-medium">Reported</div>
-                              <div className="text-muted small">Raised today</div>
-                              <div className="text-muted small">Assigned to: (Unassigned)</div>
-                            </td>
-                            <td className="border-0 border-bottom py-3 text-end" style={{ width: '20%' }}>
-                              <span className="badge bg-danger" style={{ fontSize: '13px', padding: '6px 12px' }}>
-                                3 - Non-urgent (high)
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </>
+                );
+              })}
+            </div>
           )}
         </div>
       )}
@@ -3920,7 +4544,48 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
                         }}
                       >
                         {visibleDocColumns.documentName && (
-                          <td className="border-0 border-bottom py-3" style={{ whiteSpace: 'nowrap', paddingLeft: '1rem', paddingRight: '0.75rem' }}>{doc.name}</td>
+                          <td className="border-0 border-bottom py-3" style={{ paddingLeft: '1rem', paddingRight: '0.75rem' }}>
+                            <div style={{ whiteSpace: 'nowrap' }}>{doc.name}</div>
+                            {documentSegment === 'consultation' && String(doc.type || '').toLowerCase() === 'notice' && (() => {
+                              const observationInfo = documentObservationSummary[String(doc.id)];
+                              if (!observationInfo || observationInfo.total === 0) {
+                                return null;
+                              }
+
+                              return (
+                                <div className="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                  <span
+                                    className="badge"
+                                    style={{
+                                      backgroundColor: '#eff6ff',
+                                      color: '#0b81c5',
+                                      border: '1px solid #bedbff',
+                                      fontSize: '11px',
+                                      fontWeight: 600,
+                                      padding: '3px 8px'
+                                    }}
+                                  >
+                                    Responses {observationInfo.total}
+                                  </span>
+                                  {observationInfo.unresolved > 0 && (
+                                    <span
+                                      className="badge"
+                                      style={{
+                                        backgroundColor: '#fff7ed',
+                                        color: '#ca3500',
+                                        border: '1px solid #ffd6a7',
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                        padding: '3px 8px'
+                                      }}
+                                    >
+                                      New {observationInfo.unresolved}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </td>
                         )}
                         {visibleDocColumns.type && (
                           <td className="border-0 border-bottom py-3" style={{ whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>{doc.type}</td>
@@ -4714,7 +5379,23 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
         onCreateObservation={handleObservationCreate}
         onUpdateObservation={handleObservationUpdate}
         onDeleteObservation={handleObservationDelete}
-        onObservationStatusChange={handleObservationStatusChange}
+      />
+      <ConfirmationModal
+        show={stageProgressWarning !== null}
+        title={stageProgressWarning?.type === 'cooldown' ? 'Legal waiting period not complete' : 'Previous stage still has open tasks'}
+        message={
+          stageProgressWarning
+            ? stageProgressWarning.type === 'cooldown'
+              ? stageProgressWarning.sentDate
+                ? `${stageProgressWarning.blockedStageName} was sent on ${stageProgressWarning.sentDate}. You must wait ${stageProgressWarning.requiredDays} days before progressing. ${stageProgressWarning.remainingDays} day${stageProgressWarning.remainingDays === 1 ? '' : 's'} remaining.`
+                : `${stageProgressWarning.blockedStageName} requires a legal ${stageProgressWarning.requiredDays}-day wait period that starts only after the notice is marked sent.`
+              : `${stageProgressWarning.blockedStageName} still has ${stageProgressWarning.incompleteCount} unchecked task${stageProgressWarning.incompleteCount === 1 ? '' : 's'}. Complete that stage before updating this one.`
+            : ''
+        }
+        confirmLabel="OK"
+        variant="warning"
+        onCancel={() => setStageProgressWarning(null)}
+        onConfirm={() => setStageProgressWarning(null)}
       />
 
       {/* CDM Assessment Modal */}

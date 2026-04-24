@@ -13,7 +13,7 @@ export type ConsultationStage =
 
 export type WorkType = 'major-works' | 'improvements' | 'cyclical-works' | 'emergency-works';
 export type ObservationChannel = 'email' | 'post' | 'phone' | 'portal' | 'internal-note';
-export type ObservationStatus = 'new' | 'reviewing' | 'responded';
+export type ObservationStatus = 'no-action' | 'reviewing' | 'addressed';
 
 export type WorkCategory = 
   | 'roof-repairs'
@@ -156,6 +156,38 @@ export interface Document {
   visibility?: 'internal' | 'external';
   uploadedDate?: string;
   uploadedBy?: string;
+  templateId?: string;
+  templateName?: string;
+  body?: string;
+  contentSource?: 'template' | 'upload';
+  uploadedFileName?: string;
+  postalPackGeneratedAt?: string | null;
+  postalPackGeneratedBy?: string | null;
+  postalPackVersion?: number;
+  postalPackLeaseholderCount?: number;
+  postalPackReason?: string | null;
+  emailDeliveryMethod?: 'email';
+  emailReadReceiptRequested?: boolean;
+  emailSentAt?: string | null;
+  emailSentBy?: string | null;
+  emailDeliverySummary?: {
+    targeted: number;
+    sent: number;
+    delivered: number;
+    opened: number;
+    bounced: number;
+    excluded: number;
+  } | null;
+  emailDeliveryEntries?: {
+    leaseholderId: string;
+    leaseholderName: string;
+    unit: string;
+    status: 'sent' | 'delivered' | 'opened' | 'bounced' | 'excluded';
+    sentAt?: string | null;
+    deliveredAt?: string | null;
+    openedAt?: string | null;
+    bounceReason?: string | null;
+  }[] | null;
 }
 
 export interface Issue {
