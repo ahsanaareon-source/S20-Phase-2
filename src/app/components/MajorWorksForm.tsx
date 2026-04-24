@@ -1,7 +1,5 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, CheckCircle, Info, Building2, Calendar as CalendarIcon, FileText, Users, AlertCircle, MapPin, GripVertical } from 'lucide-react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronRight, ChevronLeft, CheckCircle, Info, Building2, Calendar as CalendarIcon, FileText, Users, AlertCircle, MapPin } from 'lucide-react';
 import { Calendar } from '@/app/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
 import { format } from 'date-fns';
@@ -57,188 +55,6 @@ const getTimelineTemplate = (category: string) => {
   return templates[category] || templates['roof-repairs'];
 };
 
-const getRequiredDocuments = (workType: string) => {
-  if (workType === 'major-works') {
-    return [
-      { name: 'Notice of intention', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Draft' },
-      { name: 'Structural Survey Report', type: 'Other', category: 'consultation', stage: 'Preparation', status: 'Draft' },
-      { name: 'Consultation Estimates', type: 'Estimates', category: 'consultation', stage: 'Estimates', status: 'Draft' },
-      { name: 'Right to be represented', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Draft' },
-      { name: 'Notice of estimates', type: 'Letter', category: 'consultation', stage: 'Estimates', status: 'Draft' },
-      { name: 'Right to nomination', type: 'Letter', category: 'consultation', stage: 'Tender', status: 'Draft' },
-      { name: 'Award of contract', type: 'Letter', category: 'consultation', stage: 'Award', status: 'Draft' }
-    ];
-  }
-  return [];
-};
-
-// Past projects for template selection
-const pastProjects = [
-  { 
-    id: '1', 
-    name: 'Roof Replacement - Burns Court', 
-    status: 'Completed',
-    workCategory: 'Roof Repairs',
-    stages: 5,
-    documents: 12,
-    leaseholders: 48,
-    totalCost: '£125,000',
-    duration: '16 weeks',
-    projectDocuments: [
-      { name: 'Notice of intention', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Completed' },
-      { name: 'Tenders received summary', type: 'Report', category: 'consultation', stage: 'Tender', status: 'Completed' },
-      { name: 'Statement of estimate', type: 'Letter', category: 'consultation', stage: 'Estimates', status: 'Completed' },
-      { name: 'Notice of reasons', type: 'Letter', category: 'consultation', stage: 'Award', status: 'Completed' },
-      { name: 'Completion certificate', type: 'Certificate', category: 'consultation', stage: 'Completion', status: 'Completed' },
-      { name: 'Contractor proposal', type: 'Document', category: 'technical', stage: 'Planning', status: 'Completed' },
-      { name: 'Cost breakdown', type: 'Spreadsheet', category: 'financial', stage: 'Planning', status: 'Completed' },
-      { name: 'Site inspection report', type: 'Report', category: 'technical', stage: 'Assessment', status: 'Completed' },
-      { name: 'Leaseholder consultation responses', type: 'Document', category: 'consultation', stage: 'Consultation', status: 'Completed' },
-      { name: 'Final accounts summary', type: 'Report', category: 'financial', stage: 'Completion', status: 'Completed' },
-      { name: 'Photographic evidence', type: 'Document', category: 'technical', stage: 'Completion', status: 'Completed' },
-      { name: 'Warranty documents', type: 'Certificate', category: 'legal', stage: 'Completion', status: 'Completed' }
-    ]
-  },
-  { 
-    id: '2', 
-    name: 'External Repairs - West Side Estate', 
-    status: 'Completed',
-    workCategory: 'External Repairs',
-    stages: 5,
-    documents: 10,
-    leaseholders: 32,
-    totalCost: '£89,500',
-    duration: '12 weeks',
-    projectDocuments: [
-      { name: 'Notice of intention', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Completed' },
-      { name: 'Tenders received summary', type: 'Report', category: 'consultation', stage: 'Tender', status: 'Completed' },
-      { name: 'Statement of estimate', type: 'Letter', category: 'consultation', stage: 'Estimates', status: 'Completed' },
-      { name: 'Notice of reasons', type: 'Letter', category: 'consultation', stage: 'Award', status: 'Completed' },
-      { name: 'Completion certificate', type: 'Certificate', category: 'consultation', stage: 'Completion', status: 'Completed' },
-      { name: 'Structural assessment', type: 'Report', category: 'technical', stage: 'Assessment', status: 'Completed' },
-      { name: 'Material specifications', type: 'Document', category: 'technical', stage: 'Planning', status: 'Completed' },
-      { name: 'Cost breakdown', type: 'Spreadsheet', category: 'financial', stage: 'Planning', status: 'Completed' },
-      { name: 'Work schedule', type: 'Document', category: 'technical', stage: 'Planning', status: 'Completed' },
-      { name: 'Final invoice', type: 'Document', category: 'financial', stage: 'Completion', status: 'Completed' }
-    ]
-  },
-  { 
-    id: '3', 
-    name: 'Electrical Upgrade - Central Tower', 
-    status: 'Completed',
-    workCategory: 'Electrical',
-    stages: 5,
-    documents: 8,
-    leaseholders: 24,
-    totalCost: '£56,000',
-    duration: '10 weeks',
-    projectDocuments: [
-      { name: 'Notice of intention', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Completed' },
-      { name: 'Tenders received summary', type: 'Report', category: 'consultation', stage: 'Tender', status: 'Completed' },
-      { name: 'Statement of estimate', type: 'Letter', category: 'consultation', stage: 'Estimates', status: 'Completed' },
-      { name: 'Notice of reasons', type: 'Letter', category: 'consultation', stage: 'Award', status: 'Completed' },
-      { name: 'Electrical safety certificate', type: 'Certificate', category: 'technical', stage: 'Completion', status: 'Completed' },
-      { name: 'Circuit diagrams', type: 'Document', category: 'technical', stage: 'Planning', status: 'Completed' },
-      { name: 'Compliance certificates', type: 'Certificate', category: 'legal', stage: 'Completion', status: 'Completed' },
-      { name: 'Cost breakdown', type: 'Spreadsheet', category: 'financial', stage: 'Planning', status: 'Completed' }
-    ]
-  }
-];
-
-// Draggable Document Item Component
-interface DraggableDocumentItemProps {
-  doc: any;
-  index: number;
-  moveDocument: (dragIndex: number, hoverIndex: number) => void;
-  isChecked: boolean;
-  onToggle: (checked: boolean) => void;
-}
-
-const DraggableDocumentItem = ({ doc, index, moveDocument, isChecked, onToggle }: DraggableDocumentItemProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  
-  const [{ handlerId }, drop] = useDrop({
-    accept: 'document',
-    collect(monitor) {
-      return {
-        handlerId: monitor.getHandlerId(),
-      };
-    },
-    hover(item: any, monitor) {
-      if (!ref.current) {
-        return;
-      }
-      const dragIndex = item.index;
-      const hoverIndex = index;
-
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
-
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
-      }
-
-      moveDocument(dragIndex, hoverIndex);
-      item.index = hoverIndex;
-    },
-  });
-
-  const [{ isDragging }, drag, preview] = useDrag({
-    type: 'document',
-    item: () => {
-      return { id: doc.name, index };
-    },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  drag(drop(ref));
-
-  return (
-    <div 
-      ref={ref}
-      data-handler-id={handlerId}
-      className="list-group-item" 
-      style={{ 
-        opacity: isDragging ? 0.5 : 1,
-        cursor: 'move'
-      }}
-    >
-      <div className="form-check d-flex align-items-center">
-        <div ref={preview} className="me-2" style={{ cursor: 'grab' }}>
-          <GripVertical size={16} className="text-muted" />
-        </div>
-        <input
-          className="form-check-input"
-          type="checkbox"
-          id={`past-doc-${index}`}
-          checked={isChecked}
-          onChange={(e) => onToggle(e.target.checked)}
-        />
-        <label className="form-check-label d-flex align-items-center w-100 ms-2" htmlFor={`past-doc-${index}`}>
-          <FileText size={16} className="me-2 text-primary flex-shrink-0" />
-          <div className="flex-grow-1">
-            <div className="fw-medium">{doc.name}</div>
-            <small className="text-muted">{doc.type} • {doc.category} • {doc.stage}</small>
-          </div>
-          <span className="badge bg-success ms-2">{doc.status}</span>
-        </label>
-      </div>
-    </div>
-  );
-};
-
 // Available users for assignment
 const availableUsers = [
   { id: 'user-1', name: 'Sarah Johnson', role: 'Property Manager' },
@@ -276,15 +92,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
     consultationEndDate: '2025-03-03',
     assignedUsers: [], // Array of user IDs
     
-    // Step 3 - Project Template
-    useTemplate: false,
-    selectedTemplate: null,
     selectedStages: [],
-    
-    // Step 4 - Documents
-    autoCreateDocuments: true,
-    usePastProjectDocuments: true,
-    selectedDocuments: [],
     
     // Additional
     additionalNotes: ''
@@ -293,7 +101,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [availableDocuments, setAvailableDocuments] = useState<any[]>([]);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef2 = useRef<HTMLDivElement>(null);
@@ -322,7 +129,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
       setFormData(defaultFormData);
       setCurrentStep(1);
       setUploadedFiles([]);
-      setAvailableDocuments([]);
     } else if (mode === 'edit') {
       // Update form data when in edit mode
       setFormData(getInitialFormData());
@@ -401,14 +207,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
     handleFiles(files);
   };
 
-  const moveDocument = useCallback((dragIndex: number, hoverIndex: number) => {
-    const draggedDocument = availableDocuments[dragIndex];
-    const newDocuments = [...availableDocuments];
-    newDocuments.splice(dragIndex, 1);
-    newDocuments.splice(hoverIndex, 0, draggedDocument);
-    setAvailableDocuments(newDocuments);
-  }, [availableDocuments]);
-
   const nextStep = (e?: React.MouseEvent) => {
     // Prevent any form submission
     if (e) {
@@ -422,15 +220,10 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
     }
     
     // Auto-population logic (only in create mode)
-    if (currentStep === 2 && formData.workCategory && !formData.useTemplate) {
+    if (currentStep === 2 && formData.workCategory) {
       // Auto-generate timeline based on work category
       const stages = getTimelineTemplate(formData.workCategory);
       handleChange('selectedStages', stages);
-      
-      // Auto-populate standard documents when moving to Documents step
-      const docs = getRequiredDocuments('major-works');
-      handleChange('selectedDocuments', docs);
-      handleChange('autoCreateDocuments', true);
     }
     
     setCurrentStep(currentStep + 1);
@@ -469,13 +262,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
           // In create mode, include all fields
           ...formData,
           timeline: formData.selectedStages,
-          documents: formData.selectedDocuments.map((doc: any, index: number) => ({
-            ...doc,
-            id: index + 1,
-            dueDate: '',
-            uploadedDate: '',
-            uploadedBy: ''
-          })),
+          documents: [],
           uploadedFiles: uploadedFiles,
           status: 'planning',
           progress: 0,
@@ -1609,68 +1396,16 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
 
                     <hr className="my-4" />
 
-                    {/* Section 3: Template Selection */}
-                    <div className="mb-4">
-                      <h6 className="mb-3 d-flex align-items-center">
-                        <FileText size={18} className="me-2 text-primary" />
-                        Project Template
-                      </h6>
-                      <div className="ps-4">
-                        {formData.selectedTemplate ? (
-                          <div className="alert alert-info d-flex align-items-start mb-0">
-                            <CheckCircle size={18} className="me-2 mt-1 flex-shrink-0" />
-                            <div>
-                              <strong>Template Used:</strong> {pastProjects.find(p => p.id === formData.selectedTemplate)?.name}
-                              <div className="small text-muted mt-1">
-                                Documents and settings from this past project will be used as a starting point
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-muted d-flex align-items-center">
-                            <AlertCircle size={16} className="me-2" />
-                            No template selected - starting from scratch
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <hr className="my-4" />
-
-                    {/* Section 4: Documents */}
+                    {/* Section 3: Documents */}
                     <div className="mb-4">
                       <h6 className="mb-3 d-flex align-items-center">
                         <FileText size={18} className="me-2 text-primary" />
                         Documents
                       </h6>
                       <div className="ps-4">
-                        {(formData.selectedDocuments.length > 0 || formData.autoCreateDocuments) && (
-                          <>
-                            <div className="mb-3">
-                              <strong>{(formData.selectedDocuments.length > 0 ? formData.selectedDocuments : getRequiredDocuments('major-works')).length} standard document{(formData.selectedDocuments.length > 0 ? formData.selectedDocuments : getRequiredDocuments('major-works')).length !== 1 ? 's' : ''} will be created</strong>
-                              <span className="badge bg-primary ms-2">Auto-generated</span>
-                            </div>
-                            <div className="list-group">
-                              {(formData.selectedDocuments.length > 0 ? formData.selectedDocuments : getRequiredDocuments('major-works')).map((doc: any, index: number) => (
-                                <div key={index} className="list-group-item">
-                                  <div className="d-flex align-items-start">
-                                    <FileText size={16} className="me-2 text-primary mt-1 flex-shrink-0" />
-                                    <div className="flex-grow-1">
-                                      <div className="fw-medium">{doc.name}</div>
-                                      <small className="text-muted">{doc.type} • {doc.stage}</small>
-                                    </div>
-                                    <span className="badge bg-secondary">{doc.status}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </>
-                        )}
-
-                        {/* Uploaded Files */}
                         {uploadedFiles.length > 0 && (
-                          <div className="mt-4">
-                            <strong className="d-block mb-2">{uploadedFiles.length} additional file{uploadedFiles.length !== 1 ? 's' : ''} uploaded</strong>
+                          <div>
+                            <strong className="d-block mb-2">{uploadedFiles.length} file{uploadedFiles.length !== 1 ? 's' : ''} uploaded</strong>
                             <div className="list-group">
                               {uploadedFiles.map((file: any, index: number) => (
                                 <div key={index} className="list-group-item">
@@ -1686,10 +1421,13 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                             </div>
                           </div>
                         )}
+                        {uploadedFiles.length === 0 && (
+                          <div className="text-muted">No supporting documents uploaded.</div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Section 5: What Will Be Created */}
+                    {/* Section 4: What Will Be Created */}
                     <div className="mb-0">
                       <h6 className="mb-3 d-flex align-items-center">
                         <CheckCircle size={18} className="me-2 text-success" />
@@ -1701,11 +1439,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                             <li className="mb-2">
                               <strong>Complete Project Structure:</strong> Full major works project with all configured details and settings
                             </li>
-                            {(formData.selectedDocuments.length > 0 || formData.autoCreateDocuments) && (
-                              <li className="mb-2">
-                                <strong>Section 20 Documents:</strong> {(formData.selectedDocuments.length > 0 ? formData.selectedDocuments : getRequiredDocuments('major-works')).length} consultation document{(formData.selectedDocuments.length > 0 ? formData.selectedDocuments : getRequiredDocuments('major-works')).length !== 1 ? 's' : ''} ready for review and customization
-                              </li>
-                            )}
                             {uploadedFiles.length > 0 && (
                               <li className="mb-2">
                                 <strong>Uploaded Files:</strong> {uploadedFiles.length} file{uploadedFiles.length !== 1 ? 's' : ''} attached during setup

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { Download, MapPin, Users, FileText, Clipboard, Briefcase, MessageSquare, PoundSterling, CheckCircle, AlertTriangle, AlertCircle, Clock, ChevronDown, ChevronUp, Hourglass, Search, Plus, ChevronLeft, ChevronRight, FilePlus, Check, X as XIcon, X, Info, Building2, Archive, Link as LinkIcon, Filter } from 'lucide-react';
 import editIcon from '../../assets/fbd9969709d1864a127070fa8f50a71f1d1c78cb.png';
 import NewDocumentModal from './NewDocumentModal';
-import NewProjectDocumentModal from './NewProjectDocumentModal';
 import DocumentDetailPanel from './DocumentDetailPanel';
 import ConfirmationModal from './ConfirmationModal';
 import MajorWorksForm from './MajorWorksForm';
@@ -94,7 +93,6 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   });
   
   // Documents tab filters
-  const [documentSegment, setDocumentSegment] = useState<'consultation' | 'project'>('consultation');
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('All types');
   const [statusFilter, setStatusFilter] = useState('All statuses');
@@ -104,7 +102,6 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showNewDocumentModal, setShowNewDocumentModal] = useState(false);
-  const [showNewProjectDocumentModal, setShowNewProjectDocumentModal] = useState(false);
   const [showDocumentDetail, setShowDocumentDetail] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showCostBreakdown, setShowCostBreakdown] = useState(false);
@@ -132,7 +129,6 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
     status: true,
     dueToSendOn: true,
     sentOn: true,
-    recipients: true,
     lastUpdated: true,
     lastUpdatedBy: true
   });
@@ -937,58 +933,25 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
   // Check if this is a new work - all stages should be pending
   const isNewWork = work.isNew || false;
   
-  // Standard Section 20 consultation documents
-  const getStandardDocuments = () => {
-    return [
-      { name: 'Notice of intention', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Draft' },
-      { name: 'Structural Survey Report', type: 'Other', category: 'consultation', stage: 'Preparation', status: 'Draft' },
-      { name: 'Consultation Estimates', type: 'Estimates', category: 'consultation', stage: 'Estimates', status: 'Draft' },
-      { name: 'Right to be represented', type: 'Letter', category: 'consultation', stage: 'Consultation', status: 'Draft' },
-      { name: 'Notice of estimates', type: 'Letter', category: 'consultation', stage: 'Estimates', status: 'Draft' },
-      { name: 'Right to nomination', type: 'Letter', category: 'consultation', stage: 'Tender', status: 'Draft' },
-      { name: 'Award of contract', type: 'Letter', category: 'consultation', stage: 'Award', status: 'Draft' }
-    ];
-  };
-
-  const getDefaultConsultationTemplateName = (documentName: string) => {
-    const normalizedName = documentName.toLowerCase();
-    if (normalizedName.includes('notice of intention')) return 'Notice of intention - standard';
-    if (normalizedName.includes('statement of estimate') || normalizedName.includes('estimate')) return 'Statement of estimate - standard';
-    if (normalizedName.includes('notice of reasons')) return 'Notice of reasons - standard';
-    if (normalizedName.includes('notice of award')) return 'Notice of award - standard';
-    if (normalizedName.includes('faq')) return 'Leaseholder FAQ - standard';
-    if (normalizedName.includes('quote')) return 'Quote pack - standard';
-    return 'Standard consultation wording';
-  };
-
-  const getDefaultConsultationBody = (documentName: string, stage?: string) => `To: {{leaseholder_name}}
-Property: {{leaseholder_property}}
-Postal address: {{postal_address}}
-And: [Recognised Tenants' Association, if applicable]
-
-Section 20 Consultation Notice (Draft)
-Document: ${documentName}
+  const getDefaultConsultationBody = (documentName: string, stage?: string) =>
+    `Document: ${documentName}
 Stage: ${stage || 'Consultation'}
-Premises: [Building / block name]
-Landlord or Manager: [Entity name]
 
-1. This notice is issued as part of the statutory consultation process for qualifying works.
+Preview snapshot
+This is a prototype preview of the uploaded consultation document.
+Open/download the source file for the full original content.`;
 
-2. Summary of the proposed works:
-[Insert scope summary]
+  const getDocumentPreviewUrl = (documentName: string, bodyText: string) => {
+    const safeTitle = String(documentName || 'Document').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeBody = String(bodyText || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br/>');
 
-3. Reasons for the works:
-[Insert reasons]
-
-4. Written observations should be sent to:
-[Insert postal / email address]
-
-5. Consultation deadline:
-{{consultation_deadline}}
-
-Signed: [Name]
-For and on behalf of: [Landlord / Manager / Authorised Agent]
-Date of notice: [Insert date]`;
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><style>body{font-family:Arial,sans-serif;margin:24px;color:#1f2937;line-height:1.6;}h1{font-size:20px;margin:0 0 12px;}p{margin:0 0 10px;}</style></head><body><h1>${safeTitle}</h1><p>${safeBody || 'Preview content available.'}</p></body></html>`;
+    return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
+  };
 
   const normalizeConsultationDocumentType = (documentName: string, documentType: string) => {
     const normalizedName = String(documentName || '').toLowerCase();
@@ -1133,14 +1096,14 @@ Date of notice: [Insert date]`;
       return document;
     }
 
+    const body = document.body || getDefaultConsultationBody(document.name, document.stage);
     return {
       ...document,
       type: normalizeConsultationDocumentType(document.name, document.type),
-      templateId: document.templateId || `template-${String(document.id)}`,
-      templateName: document.templateName || getDefaultConsultationTemplateName(document.name),
-      body: document.body || getDefaultConsultationBody(document.name, document.stage),
-      contentSource: document.contentSource || 'template',
-      uploadedFileName: document.uploadedFileName || ''
+      body,
+      contentSource: document.contentSource || 'upload',
+      uploadedFileName: document.uploadedFileName || '',
+      previewUrl: document.previewUrl || getDocumentPreviewUrl(document.name, body)
     };
   };
   
@@ -1149,57 +1112,7 @@ Date of notice: [Insert date]`;
     if (isNewWork && work.formData) {
       const docs: any[] = [];
       let docId = 1;
-      
-      // Calculate leaseholder count inline
-      const leaseholderCount = parseInt(work.formData.unitsAffected) || 24;
-      
-      // Add selected documents from past projects OR standard documents
-      const documentsToAdd = work.formData.selectedDocuments && work.formData.selectedDocuments.length > 0
-        ? work.formData.selectedDocuments
-        : work.formData.autoCreateDocuments
-        ? getStandardDocuments()
-        : [];
-      
-      if (documentsToAdd.length > 0) {
-        documentsToAdd.forEach((doc: any) => {
-          // Determine proper category - consultation stays as is, everything else becomes 'project'
-          const isConsultation = doc.category === 'consultation';
-          const category = isConsultation ? 'consultation' : 'project';
-          
-          // For consultation documents, add required fields
-          if (isConsultation) {
-            docs.push({
-              id: docId++,
-              name: doc.name,
-              type: doc.type,
-              category: 'consultation',
-              stage: doc.stage || 'Consultation',
-              status: 'Draft',
-              dueDate: work.formData.consultationStartDate ? new Date(work.formData.consultationStartDate).toLocaleDateString('en-GB').replace(/\//g, '/') : new Date().toLocaleDateString('en-GB'),
-              sentDate: null,
-              isOverdue: false,
-              isDueSoon: false,
-              recipients: [
-                { label: 'Leaseholders', count: leaseholderCount }
-              ],
-              lastUpdated: new Date().toLocaleDateString('en-GB') + ', ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-              lastUpdatedBy: 'System',
-              body: getDefaultConsultationBody(doc.name, doc.stage || 'Consultation')
-            });
-          } else {
-            // Project documents (technical, financial, legal, etc)
-            docs.push({
-              id: docId++,
-              name: doc.name,
-              type: doc.type,
-              category: 'project',
-              lastUpdated: new Date().toLocaleDateString('en-GB') + ', ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-              lastUpdatedBy: 'System'
-            });
-          }
-        });
-      }
-      
+
       // Add uploaded files as project documents
       if (work.formData.uploadedFiles && work.formData.uploadedFiles.length > 0) {
         work.formData.uploadedFiles.forEach((file: any) => {
@@ -1208,6 +1121,12 @@ Date of notice: [Insert date]`;
             name: file.name,
             type: 'Other',
             category: 'project',
+            contentSource: 'upload',
+            uploadedFileName: file.name,
+            fileSizeBytes: file.size || null,
+            uploadedOn: file.uploadDate
+              ? new Date(file.uploadDate).toLocaleDateString('en-GB') + ', ' + new Date(file.uploadDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+              : null,
             lastUpdated: new Date(file.uploadDate).toLocaleDateString('en-GB') + ', ' + new Date(file.uploadDate).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
             lastUpdatedBy: 'System'
           });
@@ -1989,38 +1908,6 @@ Date of notice: [Insert date]`;
       targetDocumentId?: string | number;
     }[] = [];
 
-    if (objectionCount > 0 && isObservationPriorityStage) {
-      items.push({
-        source: 'Observations',
-        title: `${objectionCount} objection${objectionCount === 1 ? '' : 's'} unresolved`,
-        where: observationNoticeSummaries[0]?.documentName || 'Active consultation notice',
-        when: observationNoticeSummaries[0]?.latestReceivedOn
-          ? new Date(observationNoticeSummaries[0].latestReceivedOn).toLocaleDateString('en-GB')
-          : undefined,
-        detail: 'Needs review before the consultation stage can be closed out.',
-        tone: objectionCount >= 3 ? 'critical' : 'warning',
-        actionLabel: 'Review observations',
-        targetTab: 'documents',
-        targetDocumentId: observationNoticeSummaries[0]?.documentId
-      });
-    }
-
-    if (unresolvedObservationCount > 0 && isObservationPriorityStage) {
-      items.push({
-        source: 'Observations',
-        title: `${unresolvedObservationCount} response${unresolvedObservationCount === 1 ? '' : 's'} still open`,
-        where: observationNoticeSummaries[0]?.documentName || 'Active consultation notice',
-        when: observationNoticeSummaries[0]?.latestReceivedOn
-          ? new Date(observationNoticeSummaries[0].latestReceivedOn).toLocaleDateString('en-GB')
-          : undefined,
-        detail: 'Leaseholder responses still need PM action before consultation closure.',
-        tone: unresolvedObservationCount >= 6 ? 'critical' : 'warning',
-        actionLabel: 'Review observations',
-        targetTab: 'documents',
-        targetDocumentId: observationNoticeSummaries[0]?.documentId
-      });
-    }
-
     const draftConsultationDocs = currentStageDocuments.filter((document: any) => document.status === 'Draft');
     if (draftConsultationDocs.length > 0) {
       items.push({
@@ -2051,48 +1938,11 @@ Date of notice: [Insert date]`;
       }
     }
 
-    const generatedButNotSent = currentStageDocuments.filter((document: any) => document.postalPackGeneratedAt && !document.sentDate);
-    if (generatedButNotSent.length > 0) {
-      items.push({
-        source: 'Delivery',
-        title: `${generatedButNotSent.length} document${generatedButNotSent.length === 1 ? '' : 's'} generated but not marked sent`,
-        where: generatedButNotSent[0]?.name,
-        when: generatedButNotSent[0]?.postalPackGeneratedAt,
-        detail: 'Confirm issue once postal or email delivery has actually happened.',
-        tone: generatedButNotSent.length >= 2 ? 'critical' : 'warning',
-        actionLabel: 'Open delivery',
-        targetTab: 'documents',
-        targetDocumentId: generatedButNotSent[0]?.id
-      });
-    }
-
-    const sentConsultationDocs = currentStageDocuments.filter((document: any) => Boolean(document.sentDate));
-    const idSeed = Array.from(String(work.id || '0')).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const bouncedEmailCount = sentConsultationDocs.length > 0 ? idSeed % 4 : 0;
-    if (bouncedEmailCount > 0) {
-      items.push({
-        source: 'Delivery',
-        title: `${bouncedEmailCount} email${bouncedEmailCount === 1 ? '' : 's'} bounced back`,
-        where: sentConsultationDocs[0]?.name || 'Recently sent notice',
-        when: sentConsultationDocs[0]?.sentDate,
-        detail: 'Update the missing/invalid email and re-serve to keep coverage complete.',
-        tone: bouncedEmailCount >= 2 ? 'critical' : 'warning',
-        actionLabel: 'Open delivery',
-        targetTab: 'documents',
-        targetDocumentId: sentConsultationDocs[0]?.id
-      });
-    }
-
     return items.slice(0, 4);
   }, [
     contractorQuoteData,
     currentStageDocuments,
     isNewWork,
-    isObservationPriorityStage,
-    objectionCount,
-    observationNoticeSummaries,
-    unresolvedObservationCount,
-    work.id,
     work.status
   ]);
 
@@ -2150,24 +2000,10 @@ Date of notice: [Insert date]`;
         where: latestSentConsultationDoc.stage,
         when: formatUpdateTimestamp(latestSentConsultationDoc.sentDate),
         actor: latestSentConsultationDoc.lastUpdatedBy,
-        detail: `Marked sent in delivery for ${latestSentConsultationDoc.name}.`,
+        detail: `Marked as sent for ${latestSentConsultationDoc.name}.`,
         actionLabel: 'Open document',
         targetTab: 'documents',
         targetDocumentId: latestSentConsultationDoc.id
-      });
-    }
-
-    if (observationNoticeSummaries[0] && observationNoticeSummaries[0].objections === 0) {
-      updates.push({
-        source: 'Observations',
-        title: `${observationNoticeSummaries[0].responses} leaseholder response${observationNoticeSummaries[0].responses === 1 ? '' : 's'} logged`,
-        where: CONSULTATION_STAGE_LABELS[observationNoticeSummaries[0].stage],
-        when: formatUpdateTimestamp(observationNoticeSummaries[0].latestReceivedOn),
-        actor: 'Leaseholders',
-        detail: `Latest against ${observationNoticeSummaries[0].documentName}.`,
-        actionLabel: 'Review observations',
-        targetTab: 'documents',
-        targetDocumentId: observationNoticeSummaries[0].documentId
       });
     }
 
@@ -2388,17 +2224,11 @@ Date of notice: [Insert date]`;
 
   // Filter documents
   const filteredDocuments = documents.filter(doc => {
-    // Category filter (consultation vs project)
-    if (doc.category !== documentSegment) {
-      return false;
-    }
-
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       const matchesSearch = 
         doc.name.toLowerCase().includes(query) ||
-        (doc.recipients && doc.recipients.some(r => r.label.toLowerCase().includes(query))) ||
         doc.lastUpdatedBy.toLowerCase().includes(query);
       if (!matchesSearch) return false;
     }
@@ -2408,13 +2238,11 @@ Date of notice: [Insert date]`;
       return false;
     }
 
-    // Status filter (only for consultation documents)
-    if (documentSegment === 'consultation' && statusFilter !== 'All statuses' && doc.status !== statusFilter) {
+    if (statusFilter !== 'All statuses' && doc.status !== statusFilter) {
       return false;
     }
 
-    // Due/Overdue filter (only for consultation documents)
-    if (documentSegment === 'consultation' && showDueOverdue && !doc.isOverdue && !doc.isDueSoon) {
+    if (showDueOverdue && !doc.isOverdue && !doc.isDueSoon) {
       return false;
     }
 
@@ -2469,26 +2297,6 @@ Date of notice: [Insert date]`;
     if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
-
-  const documentObservationSummary = useMemo(() => {
-    return observations.reduce<Record<string, { total: number; unresolved: number }>>((acc, observation) => {
-      const key = String(observation.documentId ?? '');
-      if (!key) {
-        return acc;
-      }
-
-      if (!acc[key]) {
-        acc[key] = { total: 0, unresolved: 0 };
-      }
-
-      acc[key].total += 1;
-      if (observation.status !== 'addressed') {
-        acc[key].unresolved += 1;
-      }
-
-      return acc;
-    }, {});
-  }, [observations]);
 
   const handleObservationStatusChange = (observationId: string, status: Observation['status']) => {
     setObservations(prev =>
@@ -2580,24 +2388,15 @@ Date of notice: [Insert date]`;
 
   // Handle document modal
   const handleNewDocumentClick = () => {
-    if (documentSegment === 'project') {
-      setShowNewProjectDocumentModal(true);
-    } else {
-      setShowNewDocumentModal(true);
-    }
+    setShowNewDocumentModal(true);
   };
 
   const handleDocumentModalClose = () => {
     setShowNewDocumentModal(false);
   };
 
-  const handleProjectDocumentModalClose = () => {
-    setShowNewProjectDocumentModal(false);
-  };
-
   const handleDocumentSubmit = (data: any) => {
-    // Check if this is a project document or consultation document
-    const isProjectDoc = !data.recipients;
+    const isProjectDoc = data.category === 'project';
     const existingNoticeStageSet = new Set(
       documents
         .filter(document => document.category === 'consultation')
@@ -2636,33 +2435,37 @@ Date of notice: [Insert date]`;
       newDocument = {
         ...baseDocument,
         category: 'project' as const,
-        visibility: data.visibility || 'visible-to-all'
+        visibility: data.visibility || 'visible-to-all',
+        contentSource: 'upload',
+        uploadedFileName: data.uploadedFile?.name || '',
+        fileSizeBytes: data.uploadedFile?.size || null,
+        uploadedOn: new Date().toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        body: data.description || ''
       };
     } else {
       // Consultation document structure
-      const selectedRecipients = Object.entries(data.recipients || {})
-        .filter(([, value]) => value)
-        .map(([key]) => {
-          const recipientMap: { [key: string]: { label: string; count: number } } = {
-            leaseholders: { label: 'Leaseholders', count: 42 },
-            directors: { label: 'Directors', count: 4 },
-            managingAgents: { label: 'Managing agent', count: 1 },
-            freeholders: { label: 'Freeholders', count: 1 }
-          };
-          return recipientMap[key];
-        })
-        .filter(Boolean);
-
       newDocument = {
         ...baseDocument,
         category: 'consultation' as const,
         stage: data.stage || 'Not set',
         status: 'Draft',
-        contentSource: data.contentSource || (data.uploadedFile ? 'upload' : 'template'),
+        contentSource: 'upload',
         uploadedFileName: data.uploadedFile?.name || '',
-        templateId: data.templateId || `template-${documents.length + 1}`,
-        templateName: data.templateName || getDefaultConsultationTemplateName(data.documentName || 'Consultation document'),
-        body: data.templateText || getDefaultConsultationBody(data.documentName || 'Consultation document', data.stage || 'Not set'),
+        fileSizeBytes: data.uploadedFile?.size || null,
+        uploadedOn: new Date().toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        body: data.description || getDefaultConsultationBody(data.documentName || 'Consultation document', data.stage || 'Not set'),
         dueDate: data.dueDate ? new Date(data.dueDate).toLocaleDateString('en-GB', { 
           day: '2-digit', 
           month: '2-digit', 
@@ -2670,17 +2473,12 @@ Date of notice: [Insert date]`;
         }).replace(/\//g, '/') : '19/11/2025',
         sentDate: null,
         isOverdue: false,
-        isDueSoon: false,
-        recipients:
-          selectedRecipients.length > 0
-            ? selectedRecipients
-            : [{ label: 'Leaseholders', count: 42 }]
+        isDueSoon: false
       };
     }
     
     setDocuments([newDocument, ...documents]);
     setShowNewDocumentModal(false);
-    setShowNewProjectDocumentModal(false);
   };
 
   const handleDocumentUpdate = (documentId: number | string, updates: any) => {
@@ -4066,46 +3864,6 @@ Date of notice: [Insert date]`;
             </div>
           ) : (
             <>
-              {/* Segment Control */}
-              <div className="mb-4">
-                <div className="btn-group" role="group" style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.1)', borderRadius: '6px' }}>
-                  <button
-                    type="button"
-                    className={`btn ${documentSegment === 'consultation' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    onClick={() => {
-                      setDocumentSegment('consultation');
-                      setTypeFilter('All types');
-                      setStatusFilter('All statuses');
-                      setShowDueOverdue(false);
-                      handleFilterChange();
-                    }}
-                    style={{
-                      paddingLeft: '24px',
-                      paddingRight: '24px',
-                      fontWeight: documentSegment === 'consultation' ? '500' : '400'
-                    }}
-                  >
-                    Consultation
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${documentSegment === 'project' ? 'btn-primary' : 'btn-outline-secondary'}`}
-                    onClick={() => {
-                      setDocumentSegment('project');
-                      setTypeFilter('All types');
-                      handleFilterChange();
-                    }}
-                    style={{
-                      paddingLeft: '24px',
-                      paddingRight: '24px',
-                      fontWeight: documentSegment === 'project' ? '500' : '400'
-                    }}
-                  >
-                    Project
-                  </button>
-                </div>
-              </div>
-
               {/* Filters - matching MajorWorksList styling */}
               <div className="card border-0 shadow-sm mb-4">
                 <div className="card-body">
@@ -4119,49 +3877,39 @@ Date of notice: [Insert date]`;
                           handleFilterChange();
                         }}
                       >
-                        {documentSegment === 'consultation' ? (
-                          <>
-                            <option>All types</option>
-                            <option>Letter</option>
-                            <option>Notice</option>
-                            <option>Quote</option>
-                            <option>Certificate</option>
-                            <option>Email</option>
-                            <option>Other</option>
-                          </>
-                        ) : (
-                          <>
-                            <option>All types</option>
-                            <option>Contracts</option>
-                            <option>Site meeting minutes</option>
-                            <option>F10 / CDM docs</option>
-                            <option>Certificates of payment</option>
-                          </>
-                        )}
+                        <option>All types</option>
+                        <option>Letter</option>
+                        <option>Notice</option>
+                        <option>Quote</option>
+                        <option>Certificate</option>
+                        <option>Email</option>
+                        <option>Contracts</option>
+                        <option>Site meeting minutes</option>
+                        <option>F10 / CDM docs</option>
+                        <option>Certificates of payment</option>
+                        <option>Other</option>
                       </select>
                     </div>
 
-                    {documentSegment === 'consultation' && (
-                      <div className="col-md-3">
-                        <select 
-                          className="form-select"
-                          value={statusFilter}
-                          onChange={(e) => {
-                            setStatusFilter(e.target.value);
-                            handleFilterChange();
-                          }}
-                        >
-                          <option>All statuses</option>
-                          <option>Sent</option>
-                          <option>Ready to send</option>
-                          <option>Draft</option>
-                          <option>Awaiting approval</option>
-                          <option>Send now</option>
-                        </select>
-                      </div>
-                    )}
+                    <div className="col-md-3">
+                      <select 
+                        className="form-select"
+                        value={statusFilter}
+                        onChange={(e) => {
+                          setStatusFilter(e.target.value);
+                          handleFilterChange();
+                        }}
+                      >
+                        <option>All statuses</option>
+                        <option>Sent</option>
+                        <option>Ready to send</option>
+                        <option>Draft</option>
+                        <option>Awaiting approval</option>
+                        <option>Send now</option>
+                      </select>
+                    </div>
 
-                    <div className={documentSegment === 'consultation' ? 'col-md-6' : 'col-md-9'}>
+                    <div className="col-md-6">
                       <div className="d-flex gap-3">
                         <div className="input-group flex-grow-1">
                           <span className="input-group-text bg-white border-end-0">
@@ -4170,7 +3918,7 @@ Date of notice: [Insert date]`;
                           <input 
                             type="text" 
                             className="form-control border-start-0" 
-                            placeholder={documentSegment === 'consultation' ? 'Search documents...' : 'Search documents...'}
+                            placeholder="Search documents..."
                             value={searchQuery}
                             onChange={(e) => {
                               setSearchQuery(e.target.value);
@@ -4229,70 +3977,54 @@ Date of notice: [Insert date]`;
                                     Type
                                   </label>
                                 </div>
-                                {documentSegment === 'consultation' && (
-                                  <>
-                                    <div className="form-check mb-2">
-                                      <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-col-section20Stage"
-                                        checked={visibleDocColumns.section20Stage}
-                                        onChange={() => toggleDocColumn('section20Stage')}
-                                      />
-                                      <label className="form-check-label" htmlFor="doc-col-section20Stage" style={{ color: '#4a5565' }}>
-                                        Section 20 stage
-                                      </label>
-                                    </div>
-                                    <div className="form-check mb-2">
-                                      <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-col-status"
-                                        checked={visibleDocColumns.status}
-                                        onChange={() => toggleDocColumn('status')}
-                                      />
-                                      <label className="form-check-label" htmlFor="doc-col-status" style={{ color: '#4a5565' }}>
-                                        Status
-                                      </label>
-                                    </div>
-                                    <div className="form-check mb-2">
-                                      <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-col-dueToSendOn"
-                                        checked={visibleDocColumns.dueToSendOn}
-                                        onChange={() => toggleDocColumn('dueToSendOn')}
-                                      />
-                                      <label className="form-check-label" htmlFor="doc-col-dueToSendOn" style={{ color: '#4a5565' }}>
-                                        Due to send on
-                                      </label>
-                                    </div>
-                                    <div className="form-check mb-2">
-                                      <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-col-sentOn"
-                                        checked={visibleDocColumns.sentOn}
-                                        onChange={() => toggleDocColumn('sentOn')}
-                                      />
-                                      <label className="form-check-label" htmlFor="doc-col-sentOn" style={{ color: '#4a5565' }}>
-                                        Sent on
-                                      </label>
-                                    </div>
-                                    <div className="form-check mb-2">
-                                      <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-col-recipients"
-                                        checked={visibleDocColumns.recipients}
-                                        onChange={() => toggleDocColumn('recipients')}
-                                      />
-                                      <label className="form-check-label" htmlFor="doc-col-recipients" style={{ color: '#4a5565' }}>
-                                        Recipients
-                                      </label>
-                                    </div>
-                                  </>
-                                )}
+                                <div className="form-check mb-2">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="doc-col-section20Stage"
+                                    checked={visibleDocColumns.section20Stage}
+                                    onChange={() => toggleDocColumn('section20Stage')}
+                                  />
+                                  <label className="form-check-label" htmlFor="doc-col-section20Stage" style={{ color: '#4a5565' }}>
+                                    Section 20 stage
+                                  </label>
+                                </div>
+                                <div className="form-check mb-2">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="doc-col-status"
+                                    checked={visibleDocColumns.status}
+                                    onChange={() => toggleDocColumn('status')}
+                                  />
+                                  <label className="form-check-label" htmlFor="doc-col-status" style={{ color: '#4a5565' }}>
+                                    Status
+                                  </label>
+                                </div>
+                                <div className="form-check mb-2">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="doc-col-dueToSendOn"
+                                    checked={visibleDocColumns.dueToSendOn}
+                                    onChange={() => toggleDocColumn('dueToSendOn')}
+                                  />
+                                  <label className="form-check-label" htmlFor="doc-col-dueToSendOn" style={{ color: '#4a5565' }}>
+                                    Due to send on
+                                  </label>
+                                </div>
+                                <div className="form-check mb-2">
+                                  <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id="doc-col-sentOn"
+                                    checked={visibleDocColumns.sentOn}
+                                    onChange={() => toggleDocColumn('sentOn')}
+                                  />
+                                  <label className="form-check-label" htmlFor="doc-col-sentOn" style={{ color: '#4a5565' }}>
+                                    Sent on
+                                  </label>
+                                </div>
                                 <div className="form-check mb-2">
                                   <input
                                     className="form-check-input"
@@ -4318,26 +4050,22 @@ Date of notice: [Insert date]`;
                                   </label>
                                 </div>
                               </div>
-                              {documentSegment === 'consultation' && (
-                                <>
-                                  <hr className="my-2" />
-                                  <div className="form-check mb-0">
-                                    <input 
-                                      className="form-check-input" 
-                                      type="checkbox" 
-                                      id="showDueOverdue"
-                                      checked={showDueOverdue}
-                                      onChange={(e) => {
-                                        setShowDueOverdue(e.target.checked);
-                                        handleFilterChange();
-                                      }}
-                                    />
-                                    <label className="form-check-label" htmlFor="showDueOverdue" style={{ color: '#4a5565' }}>
-                                      Show only due & overdue
-                                    </label>
-                                  </div>
-                                </>
-                              )}
+                              <hr className="my-2" />
+                              <div className="form-check mb-0">
+                                <input 
+                                  className="form-check-input" 
+                                  type="checkbox" 
+                                  id="showDueOverdue"
+                                  checked={showDueOverdue}
+                                  onChange={(e) => {
+                                    setShowDueOverdue(e.target.checked);
+                                    handleFilterChange();
+                                  }}
+                                />
+                                <label className="form-check-label" htmlFor="showDueOverdue" style={{ color: '#4a5565' }}>
+                                  Show only due & overdue
+                                </label>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -4365,13 +4093,13 @@ Date of notice: [Insert date]`;
                   scrollbarColor: '#dee2e6 #f8f9fa'
                 }}
               >
-                <table className="table table-hover mb-0" style={{ fontSize: '14px', minWidth: documentSegment === 'consultation' ? '1400px' : 'auto' }}>
+                <table className="table table-hover mb-0" style={{ fontSize: '14px', minWidth: '1400px' }}>
                   <thead style={{ backgroundColor: '#f8f9fa' }}>
                     <tr>
                       {visibleDocColumns.documentName && (
                         <th 
                           className="border-0 py-3" 
-                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: documentSegment === 'consultation' ? '200px' : '180px', whiteSpace: 'nowrap', paddingLeft: '1rem', paddingRight: '0.75rem' }}
+                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: '200px', whiteSpace: 'nowrap', paddingLeft: '1rem', paddingRight: '0.75rem' }}
                           onClick={() => handleSort('name')}
                         >
                           <div className="d-flex align-items-center gap-1">
@@ -4385,7 +4113,7 @@ Date of notice: [Insert date]`;
                       {visibleDocColumns.type && (
                         <th 
                           className="border-0 py-3" 
-                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: documentSegment === 'consultation' ? '120px' : '100px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}
+                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: '120px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}
                           onClick={() => handleSort('type')}
                         >
                           <div className="d-flex align-items-center gap-1">
@@ -4396,8 +4124,7 @@ Date of notice: [Insert date]`;
                           </div>
                         </th>
                       )}
-                      {/* Consultation-only columns */}
-                      {visibleDocColumns.section20Stage && documentSegment === 'consultation' && (
+                      {visibleDocColumns.section20Stage && (
                         <th 
                           className="border-0 py-3" 
                           style={{ 
@@ -4419,7 +4146,7 @@ Date of notice: [Insert date]`;
                           </div>
                         </th>
                       )}
-                      {visibleDocColumns.status && documentSegment === 'consultation' && (
+                      {visibleDocColumns.status && (
                         <th 
                           className="border-0 py-3" 
                           style={{ 
@@ -4441,7 +4168,7 @@ Date of notice: [Insert date]`;
                           </div>
                         </th>
                       )}
-                      {visibleDocColumns.dueToSendOn && documentSegment === 'consultation' && (
+                      {visibleDocColumns.dueToSendOn && (
                         <th 
                           className="border-0 py-3" 
                           style={{ 
@@ -4463,7 +4190,7 @@ Date of notice: [Insert date]`;
                           </div>
                         </th>
                       )}
-                      {visibleDocColumns.sentOn && documentSegment === 'consultation' && (
+                      {visibleDocColumns.sentOn && (
                         <th 
                           className="border-0 py-3" 
                           style={{ 
@@ -4485,24 +4212,10 @@ Date of notice: [Insert date]`;
                           </div>
                         </th>
                       )}
-                      {visibleDocColumns.recipients && documentSegment === 'consultation' && (
-                        <th 
-                          className="border-0 py-3" 
-                          style={{ 
-                            fontWeight: '600', 
-                            minWidth: '130px', 
-                            whiteSpace: 'nowrap',
-                            paddingLeft: '0.75rem',
-                            paddingRight: '0.75rem'
-                          }}
-                        >
-                          Recipients
-                        </th>
-                      )}
-                      {visibleDocColumns.lastUpdated && (
-                        <th 
-                          className="border-0 py-3" 
-                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: documentSegment === 'consultation' ? '130px' : '110px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}
+                        {visibleDocColumns.lastUpdated && (
+                          <th 
+                            className="border-0 py-3" 
+                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: '130px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}
                           onClick={() => handleSort('lastUpdated')}
                         >
                           <div className="d-flex align-items-center gap-1">
@@ -4513,10 +4226,10 @@ Date of notice: [Insert date]`;
                           </div>
                         </th>
                       )}
-                      {visibleDocColumns.lastUpdatedBy && (
-                        <th 
-                          className="border-0 py-3" 
-                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: documentSegment === 'consultation' ? '150px' : '130px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '1rem' }}
+                        {visibleDocColumns.lastUpdatedBy && (
+                          <th 
+                            className="border-0 py-3" 
+                          style={{ fontWeight: '600', cursor: 'pointer', userSelect: 'none', minWidth: '150px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '1rem' }}
                           onClick={() => handleSort('lastUpdatedBy')}
                         >
                           <div className="d-flex align-items-center gap-1">
@@ -4546,73 +4259,35 @@ Date of notice: [Insert date]`;
                         {visibleDocColumns.documentName && (
                           <td className="border-0 border-bottom py-3" style={{ paddingLeft: '1rem', paddingRight: '0.75rem' }}>
                             <div style={{ whiteSpace: 'nowrap' }}>{doc.name}</div>
-                            {documentSegment === 'consultation' && String(doc.type || '').toLowerCase() === 'notice' && (() => {
-                              const observationInfo = documentObservationSummary[String(doc.id)];
-                              if (!observationInfo || observationInfo.total === 0) {
-                                return null;
-                              }
-
-                              return (
-                                <div className="d-flex flex-wrap align-items-center gap-2 mt-1">
-                                  <span
-                                    className="badge"
-                                    style={{
-                                      backgroundColor: '#eff6ff',
-                                      color: '#0b81c5',
-                                      border: '1px solid #bedbff',
-                                      fontSize: '11px',
-                                      fontWeight: 600,
-                                      padding: '3px 8px'
-                                    }}
-                                  >
-                                    Responses {observationInfo.total}
-                                  </span>
-                                  {observationInfo.unresolved > 0 && (
-                                    <span
-                                      className="badge"
-                                      style={{
-                                        backgroundColor: '#fff7ed',
-                                        color: '#ca3500',
-                                        border: '1px solid #ffd6a7',
-                                        fontSize: '11px',
-                                        fontWeight: 600,
-                                        padding: '3px 8px'
-                                      }}
-                                    >
-                                      New {observationInfo.unresolved}
-                                    </span>
-                                  )}
-                                </div>
-                              );
-                            })()}
                           </td>
                         )}
                         {visibleDocColumns.type && (
                           <td className="border-0 border-bottom py-3" style={{ whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>{doc.type}</td>
                         )}
-                        {/* Consultation-only cells */}
-                        {visibleDocColumns.section20Stage && documentSegment === 'consultation' && (
-                          <td className="border-0 border-bottom py-3" style={{ whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>{doc.stage}</td>
+                        {visibleDocColumns.section20Stage && (
+                          <td className="border-0 border-bottom py-3" style={{ whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>{doc.stage || '—'}</td>
                         )}
-                        {visibleDocColumns.status && documentSegment === 'consultation' && (
+                        {visibleDocColumns.status && (
                           <td className="border-0 border-bottom py-3" style={{ paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>
-                            <span 
-                              style={{ 
-                                ...getStatusBadgeStyle(doc.status),
-                                fontSize: '12px', 
-                                padding: '6px 14px',
-                                fontWeight: '600',
-                                display: 'inline-block',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {doc.status}
-                            </span>
+                            {doc.status ? (
+                              <span 
+                                style={{ 
+                                  ...getStatusBadgeStyle(doc.status),
+                                  fontSize: '12px', 
+                                  padding: '6px 14px',
+                                  fontWeight: '600',
+                                  display: 'inline-block',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {doc.status}
+                              </span>
+                            ) : '—'}
                           </td>
                         )}
-                        {visibleDocColumns.dueToSendOn && documentSegment === 'consultation' && (
+                        {visibleDocColumns.dueToSendOn && (
                           <td className="border-0 border-bottom py-3" style={{ paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>
-                            <div style={{ fontSize: '14px', whiteSpace: 'nowrap' }}>{doc.dueDate}</div>
+                            <div style={{ fontSize: '14px', whiteSpace: 'nowrap' }}>{doc.dueDate || '—'}</div>
                             {doc.isOverdue && (
                               <span 
                                 className="badge bg-danger mt-1" 
@@ -4644,31 +4319,8 @@ Date of notice: [Insert date]`;
                             )}
                           </td>
                         )}
-                        {visibleDocColumns.sentOn && documentSegment === 'consultation' && (
+                        {visibleDocColumns.sentOn && (
                           <td className="border-0 border-bottom py-3" style={{ fontSize: '14px', whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>{doc.sentDate || '—'}</td>
-                        )}
-                        {visibleDocColumns.recipients && documentSegment === 'consultation' && (
-                          <td className="border-0 border-bottom py-3" style={{ paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>
-                            {doc.recipients && doc.recipients.map((recipient, idx) => (
-                              <div key={idx} className={`d-flex align-items-center gap-1 ${idx > 0 ? 'mt-1' : ''}`} style={{ whiteSpace: 'nowrap' }}>
-                                <span 
-                                  style={{ 
-                                    backgroundColor: '#f0f0f0',
-                                    color: '#333',
-                                    fontSize: '11px',
-                                    padding: '3px 8px',
-                                    borderRadius: '12px',
-                                    fontWeight: '500',
-                                    display: 'inline-block',
-                                    whiteSpace: 'nowrap'
-                                  }}
-                                >
-                                  {recipient.label}
-                                </span>
-                                <span style={{ fontSize: '11px', color: '#666', whiteSpace: 'nowrap' }}>({recipient.count})</span>
-                              </div>
-                            ))}
-                          </td>
                         )}
                         {visibleDocColumns.lastUpdated && (
                           <td className="border-0 border-bottom py-3" style={{ whiteSpace: 'nowrap', paddingLeft: '0.75rem', paddingRight: '0.75rem' }}>{doc.lastUpdated}</td>
@@ -5359,13 +5011,6 @@ Date of notice: [Insert date]`;
         existingDocuments={documents}
       />
 
-      {/* New Project Document Modal */}
-      <NewProjectDocumentModal
-        show={showNewProjectDocumentModal}
-        onClose={handleProjectDocumentModalClose}
-        onSubmit={handleDocumentSubmit}
-      />
-
       <DocumentDetailPanel
         show={showDocumentDetail}
         onHide={() => {
@@ -5374,11 +5019,6 @@ Date of notice: [Insert date]`;
         }}
         document={selectedDocument}
         onUpdateDocument={handleDocumentUpdate}
-        observations={observations}
-        leaseholderRecords={leaseholderRecords}
-        onCreateObservation={handleObservationCreate}
-        onUpdateObservation={handleObservationUpdate}
-        onDeleteObservation={handleObservationDelete}
       />
       <ConfirmationModal
         show={stageProgressWarning !== null}
