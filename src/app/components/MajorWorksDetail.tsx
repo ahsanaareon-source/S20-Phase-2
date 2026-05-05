@@ -62,6 +62,9 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
     exceeds500PersonDays: false,
     multipleTradesConcurrent: false
   });
+
+  const majorWorksDescription =
+    work.formData?.description || 'No description available';
   
   // Helper function for status badge color
   const getStatusBadgeClass = (status: string) => {
@@ -2613,6 +2616,14 @@ Open/download the source file for the full original content.`;
               {!isEditingTitle ? (
                 <>
                   <h2 className="mb-0">{editedTitle}</h2>
+                  <span
+                    className="d-inline-flex align-items-center text-muted"
+                    title={majorWorksDescription}
+                    aria-label={`Description for ${work.title}`}
+                    style={{ cursor: 'help' }}
+                  >
+                    <Info size={16} />
+                  </span>
                   {work.status && (
                     <span className={`badge ${getStatusBadgeClass(work.status)}`}>
                       {work.status}

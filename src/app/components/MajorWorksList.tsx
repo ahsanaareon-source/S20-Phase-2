@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Clipboard, TrendingUp, CheckCircle, PoundSterling, Archive, ArchiveRestore, Search, Download, ChevronLeft, ChevronRight, Plus, ArrowUpDown, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { Clipboard, TrendingUp, CheckCircle, PoundSterling, Archive, ArchiveRestore, Search, Download, ChevronLeft, ChevronRight, Plus, ArrowUpDown, ArrowUp, ArrowDown, Filter, Info } from 'lucide-react';
 import AIChatBubble from './AIChatBubble';
 import ConfirmationModal from './ConfirmationModal';
 import { generateMajorWorksListPDF } from '@/utils/pdfGenerator';
@@ -68,6 +68,9 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
   const getStatusBadgeClass = (status: MajorWork['status']) => {
     return STATUS_BADGE_CLASSES[status] || 'bg-secondary';
   };
+
+  const getMajorWorksDescription = (work: MajorWork) =>
+    work.formData?.description || 'No description available';
 
   // Calculate dynamic statistics
   const stats = useMemo(() => {
@@ -551,7 +554,17 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                       className="fw-medium mb-1"
                       style={{ color: work.status === 'Archived' ? '#6b7280' : undefined }}
                     >
-                      {work.title}
+                      <span className="d-inline-flex align-items-center gap-2">
+                        <span>{work.title}</span>
+                        <span
+                          className="d-inline-flex align-items-center text-muted"
+                          title={getMajorWorksDescription(work)}
+                          aria-label={`Description for ${work.title}`}
+                          style={{ cursor: 'help' }}
+                        >
+                          <Info size={14} />
+                        </span>
+                      </span>
                     </div>
                     <div
                       className="small"
