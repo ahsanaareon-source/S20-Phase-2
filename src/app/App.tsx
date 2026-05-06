@@ -99,7 +99,7 @@ export default function App() {
       location: 'Riverside Apartments - 45 Thames Street, London, SE1 9RY',
       createdOn: generatePastDate(90),
       stage: 'Tender',
-      status: 'Delayed',
+      status: 'On hold',
       agentFee: 18500,
       propertyManager: 'Emily Roberts'
     },
@@ -179,7 +179,7 @@ export default function App() {
       location: 'Riverside Apartments - 45 Thames Street, London, SE1 9RY',
       createdOn: generatePastDate(65),
       stage: 'Tender',
-      status: 'Delayed',
+      status: 'On hold',
       agentFee: 31000,
       propertyManager: 'Emily Roberts'
     },

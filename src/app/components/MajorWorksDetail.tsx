@@ -86,6 +86,12 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
     }
   };
 
+  const getProjectStatusLabel = (status?: string) => {
+    if (status === 'In progress') return 'Active';
+    if (status === 'On hold') return 'On Hold';
+    return status;
+  };
+
   const [cdmAdditionalChecks, setCdmAdditionalChecks] = useState({
     principalDesigner: false,
     principalContractor: false,
@@ -1710,6 +1716,30 @@ Open/download the source file for the full original content.`;
   
   const [stages, setStages] = useState<Stage[]>(getInitialStages());
   useEffect(() => {
+    if (!onUpdateWork) return;
+
+    const allStagesComplete = stages.length > 0 && stages.every(stage =>
+      stage.tasks.length > 0 && stage.tasks.every(task => task.completed)
+    );
+
+    const manualStatus =
+      work.formData?.projectStatus ||
+      (work.status === 'Completed' ? 'In progress' : work.status) ||
+      'In progress';
+
+    const nextStatus = allStagesComplete ? 'Completed' : manualStatus;
+
+    if (work.status !== nextStatus) {
+      onUpdateWork(work.id, {
+        status: nextStatus,
+        formData: {
+          ...work.formData,
+          projectStatus: manualStatus
+        }
+      });
+    }
+  }, [stages, onUpdateWork, work]);
+  useEffect(() => {
     setStages(prev => applyLegalNoticeSyncToStages(prev, documents));
   }, [documents]);
 
@@ -2626,7 +2656,7 @@ Open/download the source file for the full original content.`;
                   </span>
                   {work.status && (
                     <span className={`badge ${getStatusBadgeClass(work.status)}`}>
-                      {work.status}
+                      {getProjectStatusLabel(work.status)}
                     </span>
                   )}
                   <button 
@@ -2780,40 +2810,13 @@ Open/download the source file for the full original content.`;
                         {stage.status === 'completed' && (
                           <span className="badge bg-success">Completed</span>
                         )}
-                        {stage.status === 'active' && !stage.isDelayed && (
+                        {stage.status === 'active' && (
                           <span className="badge bg-primary">In Progress</span>
-                        )}
-                        {stage.status === 'active' && stage.isDelayed && (
-                          <span className="badge bg-danger d-flex align-items-center gap-1">
-                            <AlertTriangle size={12} />
-                            Delayed
-                          </span>
                         )}
                         {stage.status === 'pending' && (
                           <span className="badge bg-secondary">Pending</span>
                         )}
                         
-                        {/* Deadline indicator */}
-                        {stage.deadline && (stage.status === 'active' || stage.status === 'pending') && (
-                          <>
-                            {stage.deadline.daysLeft < 0 ? (
-                              <div className="d-flex align-items-center gap-1 text-danger small">
-                                <AlertTriangle size={14} />
-                                <span className="fw-medium">{Math.abs(stage.deadline.daysLeft)} days overdue</span>
-                              </div>
-                            ) : stage.deadline.daysLeft <= 7 ? (
-                              <div className="d-flex align-items-center gap-1 text-danger small">
-                                <Clock size={14} />
-                                <span className="fw-medium">{stage.deadline.daysLeft} days left</span>
-                              </div>
-                            ) : (
-                              <div className="d-flex align-items-center gap-1 text-muted small">
-                                <Clock size={14} />
-                                <span>{stage.deadline.daysLeft} days left</span>
-                              </div>
-                            )}
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -2869,40 +2872,13 @@ Open/download the source file for the full original content.`;
                         {stage.status === 'completed' && (
                           <span className="badge bg-success">Completed</span>
                         )}
-                        {stage.status === 'active' && !stage.isDelayed && (
+                        {stage.status === 'active' && (
                           <span className="badge bg-primary">In Progress</span>
-                        )}
-                        {stage.status === 'active' && stage.isDelayed && (
-                          <span className="badge bg-danger d-flex align-items-center gap-1">
-                            <AlertTriangle size={12} />
-                            Delayed
-                          </span>
                         )}
                         {stage.status === 'pending' && (
                           <span className="badge bg-secondary">Pending</span>
                         )}
                         
-                        {/* Deadline indicator */}
-                        {stage.deadline && (stage.status === 'active' || stage.status === 'pending') && (
-                          <>
-                            {stage.deadline.daysLeft < 0 ? (
-                              <div className="d-flex align-items-center gap-1 text-danger small">
-                                <AlertTriangle size={14} />
-                                <span className="fw-medium">{Math.abs(stage.deadline.daysLeft)} days overdue</span>
-                              </div>
-                            ) : stage.deadline.daysLeft <= 7 ? (
-                              <div className="d-flex align-items-center gap-1 text-danger small">
-                                <Clock size={14} />
-                                <span className="fw-medium">{stage.deadline.daysLeft} days left</span>
-                              </div>
-                            ) : (
-                              <div className="d-flex align-items-center gap-1 text-muted small">
-                                <Clock size={14} />
-                                <span>{stage.deadline.daysLeft} days left</span>
-                              </div>
-                            )}
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -2915,14 +2891,6 @@ Open/download the source file for the full original content.`;
               expandedStage === stage.id && (
                 <div key={`tasks-${stage.id}`} className="mt-3 p-3 bg-light rounded stage-tasks-expand">
                   <h6 className="mb-3 text-primary">{stage.name} - Tasks</h6>
-                  
-                  {/* Delay explanation prompt - only show for delayed stages that are not completed */}
-                  {stage.isDelayed && stage.status !== 'completed' && (
-                    <div className="alert alert-warning mb-3 d-flex align-items-center" role="alert">
-                      <AlertTriangle size={16} className="me-2 flex-shrink-0" />
-                      <span className="small">This stage is delayed and may need timeline or document follow-up.</span>
-                    </div>
-                  )}
                   
                   <div className="row">
                     {stage.id === 'completion' && (Object.values(cdmReasons).some(v => v)) && (

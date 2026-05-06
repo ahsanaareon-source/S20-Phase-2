@@ -69,6 +69,12 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
     return STATUS_BADGE_CLASSES[status] || 'bg-secondary';
   };
 
+  const getStatusLabel = (status: MajorWork['status']) => {
+    if (status === 'In progress') return 'Active';
+    if (status === 'On hold') return 'On Hold';
+    return status;
+  };
+
   const getMajorWorksDescription = (work: MajorWork) =>
     work.formData?.description || 'No description available';
 
@@ -274,7 +280,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                 </div>
                 <div className="col-4">
                   <h3 className="mb-1" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>{stats.inProgress}</h3>
-                  <div className="text-muted small" style={{ height: '32px', marginBottom: '0' }}>In progress</div>
+                  <div className="text-muted small" style={{ height: '32px', marginBottom: '0' }}>Active</div>
                 </div>
                 <div className="col-4">
                   <h3 className="mb-1" style={{ height: '38px', display: 'flex', alignItems: 'center' }}>{stats.completed}</h3>
@@ -592,7 +598,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                   {visibleColumns.status && (
                     <div className="col-2">
                       <span className={`badge ${getStatusBadgeClass(work.status)} rounded-pill`}>
-                        {work.status}
+                        {getStatusLabel(work.status)}
                       </span>
                     </div>
                   )}
@@ -723,7 +729,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
         title={pendingArchiveAction?.mode === 'unarchive' ? 'Unarchive major work?' : 'Archive major work?'}
         message={
           pendingArchiveAction?.mode === 'unarchive'
-            ? 'This major work will return to the active list and its status will change to On hold.'
+            ? 'This major work will return to the active list and its status will change to On Hold.'
             : 'This major work will be archived, its status will change to Archived, and it will be hidden from the default list view.'
         }
         confirmLabel={pendingArchiveAction?.mode === 'unarchive' ? 'Unarchive major work' : 'Archive major work'}
