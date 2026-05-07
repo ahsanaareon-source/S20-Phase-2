@@ -8,6 +8,7 @@ interface DocumentDetailPanelProps {
   document?: any;
   onUpdateDocument?: (documentId: number | string, updates: any) => void;
   inline?: boolean;
+  noticeElapsedDaysSinceIssued?: number | null;
 }
 
 const formatFileSize = (bytes?: number | null) => {
@@ -37,7 +38,8 @@ export default function DocumentDetailPanel({
   onHide,
   document,
   onUpdateDocument,
-  inline = false
+  inline = false,
+  noticeElapsedDaysSinceIssued = null
 }: DocumentDetailPanelProps) {
   const [showMarkSentModal, setShowMarkSentModal] = useState(false);
 
@@ -91,7 +93,7 @@ export default function DocumentDetailPanel({
 
     if (document.sentDate) {
       onUpdateDocument(document.id, {
-        status: 'Ready to send',
+        status: 'Draft',
         sentDate: null
       });
     } else {
@@ -134,6 +136,26 @@ export default function DocumentDetailPanel({
                 <div className="text-muted small">Uploaded by</div>
                 <div>{document.lastUpdatedBy || '—'}</div>
               </div>
+              {noticeElapsedDaysSinceIssued !== null && (
+                <div className="col-12">
+                  <span
+                    className="d-inline-flex align-items-center"
+                    style={{
+                      backgroundColor: '#eff6ff',
+                      color: '#0b3f7a',
+                      border: '1px solid #bfdbfe',
+                      borderLeft: '3px solid #0b63ce',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      lineHeight: 1,
+                      padding: '5px 9px'
+                    }}
+                  >
+                    Issued {String(noticeElapsedDaysSinceIssued).padStart(2, '0')} {noticeElapsedDaysSinceIssued === 1 ? 'day' : 'days'} ago
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
