@@ -154,7 +154,7 @@ export default function AIChatBubble({ onOpenProject }: AIChatBubbleProps) {
   const renderGreetingMessage = (onProjectClick: (id: string) => void) => {
     return (
       <div>
-        <div>👋 Hi! I'm Aidenn, your Major Works AI Assistant. Here's what needs your attention:</div>
+        <div>👋 Hi! I'm Aidenn, your Section 20 AI Assistant. Here's what needs your attention:</div>
         
         <div className="mt-3">
           <div style={{ fontWeight: 600, marginBottom: '8px' }}>🔴 <strong>Urgent (2 items)</strong></div>
@@ -489,7 +489,7 @@ export default function AIChatBubble({ onOpenProject }: AIChatBubbleProps) {
                     Aidenn
                   </div>
                   <div style={{ fontSize: '12px', opacity: 0.9 }}>
-                    Major Works Assistant
+                    Section 20 Assistant
                   </div>
                 </div>
               </div>

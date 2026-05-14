@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { Download, MapPin, Users, FileText, Clipboard, Briefcase, MessageSquare, PoundSterling, CheckCircle, AlertTriangle, AlertCircle, Clock, ChevronDown, ChevronUp, Hourglass, Search, Plus, ChevronLeft, ChevronRight, FilePlus, Check, X as XIcon, X, Info, Building2, Archive, Link as LinkIcon, Filter } from 'lucide-react';
 import editIcon from '../../assets/fbd9969709d1864a127070fa8f50a71f1d1c78cb.png';
 import NewDocumentModal from './NewDocumentModal';
+import AuditLog from './AuditLog';
 import DocumentDetailPanel from './DocumentDetailPanel';
 import ConfirmationModal from './ConfirmationModal';
 import MajorWorksForm from './MajorWorksForm';
@@ -1977,7 +1978,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'Apex Roofing',
         issueRef: linkedQuoteIssues[0]?.issueRef ?? '#IS2001',
-        requestTitle: 'Riverside Roof major works quote',
+        requestTitle: 'Riverside Roof Section 20 quote',
         status: 'Quote received',
         quoteValue: '£118,400',
         nominatedByLeaseholders: false
@@ -1985,7 +1986,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'Premier Restoration',
         issueRef: linkedQuoteIssues[1]?.issueRef ?? '#IS2011',
-        requestTitle: 'Riverside Roof major works quote',
+        requestTitle: 'Riverside Roof Section 20 quote',
         status: 'Quote received',
         quoteValue: '£124,900',
         nominatedByLeaseholders: true
@@ -1993,7 +1994,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'BuildRight',
         issueRef: linkedQuoteIssues[2]?.issueRef ?? '#IS2019',
-        requestTitle: 'Riverside Roof major works quote',
+        requestTitle: 'Riverside Roof Section 20 quote',
         status: 'Clarification pending',
         quoteValue: '£131,250',
         nominatedByLeaseholders: false
@@ -2001,7 +2002,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'SafeAccess Group',
         issueRef: linkedQuoteIssues[3]?.issueRef ?? '#IS2020',
-        requestTitle: 'Riverside Roof major works quote',
+        requestTitle: 'Riverside Roof Section 20 quote',
         status: 'Requested',
         quoteValue: null,
         nominatedByLeaseholders: false
@@ -2009,7 +2010,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'Vertex Roofing',
         issueRef: linkedQuoteIssues[4]?.issueRef ?? '#IS2021',
-        requestTitle: 'Riverside Roof major works quote',
+        requestTitle: 'Riverside Roof Section 20 quote',
         status: 'Requested',
         quoteValue: null,
         nominatedByLeaseholders: false
@@ -2148,7 +2149,7 @@ Open/download the source file for the full original content.`;
       return [
         {
           source: 'Setup',
-          title: 'Major works created',
+          title: 'Section 20 created',
           where: 'Overview',
           when: formatUpdateTimestamp(work.createdOn),
           actor: work.propertyManager || 'System',
@@ -2213,7 +2214,7 @@ Open/download the source file for the full original content.`;
         where: 'CDM',
         when: formatUpdateTimestamp(currentStageDocuments[0]?.lastUpdated),
         actor: currentStageDocuments[0]?.lastUpdatedBy || 'Property manager',
-        detail: 'CDM requirements were reviewed and updated for this major works.',
+        detail: 'CDM requirements were reviewed and updated for this Section 20.',
         actionLabel: 'Open documents',
         targetTab: 'documents'
       });
@@ -2897,7 +2898,7 @@ Open/download the source file for the full original content.`;
                 budget: 450000,
                 startDate: '15/01/2024',
                 expectedCompletion: '30/06/2025',
-                description: work.formData?.description || 'Comprehensive roof replacement and waterproofing project for Riverside Apartments. This major works project involves the complete removal and replacement of the existing roof structure, including improved insulation and drainage systems.',
+                description: work.formData?.description || 'Comprehensive roof replacement and waterproofing project for Riverside Apartments. This Section 20 project involves the complete removal and replacement of the existing roof structure, including improved insulation and drainage systems.',
                 unitsAffected: '45 properties',
                 residentsNotified: '42 leaseholders',
                 contractors: '3 companies',
@@ -3863,7 +3864,7 @@ Open/download the source file for the full original content.`;
                     </div>
                   ) : (
                     <div className="rounded-3 border p-3 text-muted small">
-                      All good. No immediate actions are needed and this major works is currently on track.
+                      All good. No immediate actions are needed and this Section 20 is currently on track.
                     </div>
                   )}
                 </div>
@@ -3957,7 +3958,7 @@ Open/download the source file for the full original content.`;
             <div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted">
               <LinkIcon size={48} className="mb-3 opacity-50" />
               <p className="text-center">No issues linked to this project yet</p>
-              <p className="small text-center mb-3">Click "Link Issue" to manually associate issues with this major works</p>
+              <p className="small text-center mb-3">Click "Link Issue" to manually associate issues with this Section 20</p>
               <button
                 className="btn d-flex align-items-center gap-2"
                 onClick={() => setShowLinkIssueModal(true)}
@@ -4008,7 +4009,7 @@ Open/download the source file for the full original content.`;
                 </div>
                 <h4 className="mb-3">No documents yet</h4>
                 <p className="text-muted mb-4">
-                  Documents will be created and stored here as the major works project progresses through each stage.
+                  Documents will be created and stored here as the Section 20 project progresses through each stage.
                 </p>
                 <button 
                   className="btn btn-primary d-flex align-items-center gap-2 mx-auto"
@@ -4626,507 +4627,43 @@ Open/download the source file for the full original content.`;
 
       {activeTab === 'activity' && (
         <div>
-          {isNewWork ? (
-            /* Activity Feed for new works - Show only creation activity */
-            <div className="card border-0 shadow-sm">
-              {/* Date Group */}
-              <div className="border-bottom">
-                <div className="d-flex align-items-center justify-content-between px-3 py-2 bg-light">
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock size={14} className="text-muted" />
-                    <span className="text-muted small fw-medium">Today</span>
-                  </div>
-                  <span className="text-muted small">{documents.length > 0 ? documents.length + 1 : 1} activit{documents.length > 0 ? 'ies' : 'y'}</span>
+          {!isNewWork && (
+            <div className="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
+              <div className="d-flex align-items-center gap-3 flex-grow-1" style={{ maxWidth: '900px' }}>
+                <div className="input-group" style={{ maxWidth: '400px' }}>
+                  <span className="input-group-text bg-white">
+                    <Search size={18} className="text-muted" />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search for notes, orders, or rentals..."
+                  />
                 </div>
-                
-                <div className="px-4 py-3">
-                  {/* Documents Added Activities */}
-                  {documents.length > 0 && (
-                    <>
-                      <div className="d-flex gap-3 mb-4 position-relative">
-                        <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                          <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#0b81c5' }}></div>
-                          <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                        </div>
-                        <div className="flex-grow-1">
-                          <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                            <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                              <FileText size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                              <span style={{ verticalAlign: 'middle' }}>Documents Added</span>
-                            </span>
-                            <span className="ms-auto text-muted small">Just now</span>
-                          </div>
-                          <div className="mb-2">
-                            <div className="d-flex align-items-center gap-2 mb-1">
-                              <Users size={16} className="text-muted" />
-                              <span style={{ fontSize: '14px' }}>System</span>
-                              <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Automated</span>
-                            </div>
-                            <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                              {documents.length} document{documents.length !== 1 ? 's' : ''} imported from template and added to project
-                            </p>
-                            <div className="small text-muted">
-                              {documents.slice(0, 3).map((doc, idx) => (
-                                <div key={idx}>• {doc.name}</div>
-                              ))}
-                              {documents.length > 3 && <div>• and {documents.length - 3} more...</div>}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  
-                  {/* Creation Activity */}
-                  <div className="d-flex gap-3">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#f0fdf4', color: '#008236', border: '1px solid #b9f8cf', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <CheckCircle size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Major Works Created</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          {work.title}
-                        </span>
-                        <span className="ms-auto text-muted small">Just now</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>System</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Automated</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          New major works project created with estimated budget of £{work.formData?.estimatedBudget ? parseInt(work.formData.estimatedBudget).toLocaleString() : '0'}
-                        </p>
-                        <div className="small">
-                          <div>
-                            <span className="text-muted">Property:</span>{' '}
-                            <a 
-                              href="#" 
-                              className="text-decoration-none"
-                              style={{ color: '#0B81C5' }}
-                              onClick={(e) => e.preventDefault()}
-                            >
-                              {propertyInfo.address}
-                            </a>
-                          </div>
-                          <div><span className="text-muted">Leaseholders:</span> <span className="text-dark">{propertyInfo.leaseholderCount}</span></div>
-                          {work.formData?.workCategory && (
-                            <div><span className="text-muted">Category:</span> <span className="text-dark">{work.formData.workCategory.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span></div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
+                <select className="form-select" style={{ width: 'auto', minWidth: '140px' }}>
+                  <option>All boards</option>
+                  <option>Main board</option>
+                  <option>Issues</option>
+                </select>
+
+                <select className="form-select" style={{ width: 'auto', minWidth: '140px' }}>
+                  <option>All users</option>
+                  <option>Sarah Mitchell</option>
+                  <option>Michael Thompson</option>
+                </select>
+
+                <select className="form-select" style={{ width: 'auto', minWidth: '140px' }}>
+                  <option>All actions</option>
+                  <option>Updated</option>
+                  <option>Created</option>
+                  <option>Deleted</option>
+                </select>
               </div>
             </div>
-          ) : (
-            <>
-              {/* Header Section */}
-              <div className="d-flex justify-content-between align-items-center mb-3 gap-3 flex-wrap">
-            {/* Search bar */}
-            <div className="d-flex align-items-center gap-3 flex-grow-1" style={{ maxWidth: '900px' }}>
-              <div className="input-group" style={{ maxWidth: '400px' }}>
-                <span className="input-group-text bg-white">
-                  <Search size={18} className="text-muted" />
-                </span>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Search for notes, orders, or rentals..."
-                />
-              </div>
-              
-              {/* Filters */}
-              <select className="form-select" style={{ width: 'auto', minWidth: '140px' }}>
-                <option>All boards</option>
-                <option>Main board</option>
-                <option>Issues</option>
-              </select>
-              
-              <select className="form-select" style={{ width: 'auto', minWidth: '140px' }}>
-                <option>All users</option>
-                <option>Sarah Mitchell</option>
-                <option>Michael Thompson</option>
-              </select>
-              
-              <select className="form-select" style={{ width: 'auto', minWidth: '140px' }}>
-                <option>All actions</option>
-                <option>Updated</option>
-                <option>Created</option>
-                <option>Deleted</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Activity Timeline */}
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-0">
-              {/* Date Group: 16 December 2025 */}
-              <div className="border-bottom">
-                <div className="d-flex align-items-center justify-content-between px-3 py-2 bg-light">
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock size={14} className="text-muted" />
-                    <span className="text-muted small fw-medium">16 December 2025</span>
-                  </div>
-                  <button className="btn btn-link btn-sm text-muted text-decoration-none p-0">
-                    4 activities
-                  </button>
-                </div>
-                
-                {/* Activity Items */}
-                <div className="px-4 py-3">
-                  {/* Activity Item 1 */}
-                  <div className="d-flex gap-3 pb-4 position-relative">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                      <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#faf5ff', color: '#8200db', border: '1px solid #e9d4ff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <MessageSquare size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Consultation Response</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small">7 days ago</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Sarah Mitchell</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Property Manager</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Responded to leaseholder queries regarding the proposed works timeline and contractor selection process
-                        </p>
-                        <p className="mb-0" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Section 20 Consultation</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Activity Item 2 */}
-                  <div className="d-flex gap-3 pb-4 position-relative">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                      <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#fff7ed', color: '#ca3500', border: '1px solid #ffd6a7', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <AlertCircle size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Leaseholder Observation</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small" style={{ whiteSpace: 'nowrap' }}>01 January '26<br/>01:30</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>David Chen</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Leaseholder</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Submitted observations regarding the consultation period and requested additional time to review contractor proposals
-                        </p>
-                        <p className="mb-2" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Flat Roof Replacement Works</span>
-                        </p>
-                        <p className="mb-2" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Sent to:</span> <span className="text-dark">Property Management Team</span>
-                        </p>
-                        <div className="bg-light rounded p-3" style={{ fontSize: '14px' }}>
-                          <p className="mb-0 text-muted">
-                            <strong className="text-dark">Observation:</strong> The flat roof replacement is urgent - we've been waiting 6 months since the last inspection. Please expedite the contractor selection process.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Activity Item 3 */}
-                  <div className="d-flex gap-3 pb-4 position-relative">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                      <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#f0fdf4', color: '#008236', border: '1px solid #b9f8cf', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <CheckCircle size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Quote Approved</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small">13 hours ago</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Michael Thompson</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Senior Property Manager</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Approved contractor quote from New Stratford Commercial Ltd after consultation period concluded
-                        </p>
-                        <p className="mb-0" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Sent to:</span> <span className="text-dark">All Leaseholders</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Activity Item 4 */}
-                  <div className="d-flex gap-3">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#f9fafb', color: '#364153', border: '1px solid #e5e7eb', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <FileText size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Section 20 Notice Issued</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small" style={{ whiteSpace: 'nowrap' }}>14 hours ago<br/>12:04</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Emma Evans</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Leaseholder</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Accessed Section 20 Notice and Statement of Estimates via the leaseholder portal
-                        </p>
-                        <p className="mb-0" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Major Works Consultation - Block A</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Date Group: 17 November 2025 */}
-              <div className="border-bottom">
-                <div className="d-flex align-items-center justify-content-between px-3 py-2 bg-light">
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock size={14} className="text-muted" />
-                    <span className="text-muted small fw-medium">17 November 2025</span>
-                  </div>
-                  <button className="btn btn-link btn-sm text-muted text-decoration-none p-0">
-                    3 activities
-                  </button>
-                </div>
-                
-                <div className="px-4 py-3">
-                  {/* Simplified activity items for this date */}
-                  <div className="d-flex gap-3 pb-4 position-relative">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                      <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#fff7ed', color: '#ca3500', border: '1px solid #ffd6a7', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <AlertCircle size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Contractor Appointed</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small">21 hours ago</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Sarah Mitchell</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Property Manager</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Officially appointed New Stratford Commercial Ltd as the contractor for roof replacement works
-                        </p>
-                        <p className="mb-0" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Roof Replacement Works</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="d-flex gap-3 pb-4 position-relative">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                      <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#f0fdf4', color: '#008236', border: '1px solid #b9f8cf', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <CheckCircle size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Consultation Closed</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small">Yesterday at 14:10</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Michael Thompson</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Senior Property Manager</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Leaseholder consultation period closed. Total of 12 responses received from leaseholders
-                        </p>
-                        <p className="mb-2" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Section 20 Consultation</span>
-                        </p>
-                        <div className="d-flex gap-2 align-items-center">
-                          <span className="text-muted" style={{ fontSize: '14px' }}>Status changed from:</span>
-                          <span className="badge text-dark" style={{ backgroundColor: '#e5e7eb', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                            In Consultation
-                          </span>
-                          <ChevronRight size={14} className="text-muted" />
-                          <span className="badge text-dark" style={{ backgroundColor: '#e5e7eb', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                            Consultation Closed
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="d-flex gap-3">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#faf5ff', color: '#8200db', border: '1px solid #e9d4ff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <MessageSquare size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Estimates Reviewed</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small">Yesterday at 21:14</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Sarah Mitchell</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Property Manager</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Reviewed and compared estimates from 4 contractors for the major works project
-                        </p>
-                        <p className="mb-0" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Contractor Selection</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Date Group: 3 December 2025 */}
-              <div>
-                <div className="d-flex align-items-center justify-content-between px-3 py-2 bg-light">
-                  <div className="d-flex align-items-center gap-2">
-                    <Clock size={14} className="text-muted" />
-                    <span className="text-muted small fw-medium">3 December 2025</span>
-                  </div>
-                  <button className="btn btn-link btn-sm text-muted text-decoration-none p-0">
-                    5 activities
-                  </button>
-                </div>
-                
-                <div className="px-4 py-3">
-                  <div className="d-flex gap-3 pb-4 position-relative">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                      <div style={{ width: '2px', height: '100%', backgroundColor: '#e5e7eb', position: 'absolute', top: '8px', left: '12px' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#f9fafb', color: '#364153', border: '1px solid #e5e7eb', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <FileText size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Method Statement Uploaded</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small" style={{ whiteSpace: 'nowrap' }}>Tuesday at 13:31<br/>01:40</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>David Chen</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Leaseholder</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Contractor submitted detailed method statement and risk assessment documentation
-                        </p>
-                        <p className="mb-0" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Health & Safety Documentation</span>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="d-flex gap-3">
-                    <div className="d-flex flex-column align-items-center" style={{ width: '24px' }}>
-                      <div className="rounded-circle d-flex align-items-center justify-center" style={{ width: '8px', height: '8px', backgroundColor: '#6c757d' }}></div>
-                    </div>
-                    <div className="flex-grow-1">
-                      <div className="d-flex align-items-start gap-2 mb-2 flex-wrap">
-                        <span className="badge" style={{ backgroundColor: '#f0fdf4', color: '#008236', border: '1px solid #b9f8cf', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          <CheckCircle size={12} className="me-1" style={{ display: 'inline-block', verticalAlign: 'middle' }} />
-                          <span style={{ verticalAlign: 'middle' }}>Consultation Started</span>
-                        </span>
-                        <span className="badge" style={{ backgroundColor: '#eff6ff', color: '#0b81c5', border: '1px solid #bedbff', fontSize: '12px', padding: '4px 10px', fontWeight: '500' }}>
-                          Riverside Roof
-                        </span>
-                        <span className="ms-auto text-muted small" style={{ whiteSpace: 'nowrap' }}>Tuesday at 13:31<br/>01:40</span>
-                      </div>
-                      <div className="mb-2">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <Users size={16} className="text-muted" />
-                          <span style={{ fontSize: '14px' }}>Sarah Mitchell</span>
-                          <span className="badge border" style={{ backgroundColor: '#f3f4f6', color: '#1e2939', fontSize: '12px', padding: '3px 9px', fontWeight: '500' }}>Property Manager</span>
-                        </div>
-                        <p className="mb-2 text-muted" style={{ fontSize: '14px' }}>
-                          Commenced Section 20 consultation process with leaseholders for major works project
-                        </p>
-                        <p className="mb-2" style={{ fontSize: '14px' }}>
-                          <span className="text-muted">Related to:</span> <span className="text-dark">Section 20 Consultation</span>
-                        </p>
-                        <p className="mb-0 text-muted" style={{ fontSize: '12px' }}>
-                          Estimated cost: <strong className="text-dark">£470,000</strong>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-            </>
           )}
+
+          <AuditLog />
         </div>
       )}
 
@@ -5334,7 +4871,7 @@ Open/download the source file for the full original content.`;
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Link issue to major works</h5>
+                <h5 className="modal-title">Link issue to Section 20</h5>
                 <button 
                   type="button" 
                   className="btn-close" 
@@ -5347,7 +4884,7 @@ Open/download the source file for the full original content.`;
               </div>
               <div className="modal-body">
                 <p className="mb-3">
-                  Select one or more issues from <strong>{work.formData?.building || work.location || 'Riverside Apartments'}</strong> to manually link to this S20 major works
+                  Select one or more issues from <strong>{work.formData?.building || work.location || 'Riverside Apartments'}</strong> to manually link to this Section 20
                 </p>
                 
                 {/* Search input */}

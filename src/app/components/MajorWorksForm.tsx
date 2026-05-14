@@ -65,6 +65,17 @@ const availableUsers = [
   { id: 'user-6', name: 'David Thompson', role: 'Technical Manager' },
 ];
 
+const propertySelectionOptions = [
+  { label: 'Burns Court', estate: 'burns-court', building: '' },
+  { label: 'Burns Court / Riverside Block', estate: 'burns-court', building: 'riverside-block' },
+  { label: 'Burns Court / Parkview Block', estate: 'burns-court', building: 'parkview-block' },
+  { label: 'Burns Court / Central Tower', estate: 'burns-court', building: 'central-tower' },
+  { label: 'West Side Estate', estate: 'west-side', building: '' },
+  { label: 'West Side Estate / Riverside Block', estate: 'west-side', building: 'riverside-block' },
+  { label: 'East End Complex', estate: 'east-end', building: '' },
+  { label: 'East End Complex / Riverside Block', estate: 'east-end', building: 'riverside-block' }
+];
+
 export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode = 'create', onDirtyChange }: MajorWorksFormProps) {
   // Default form data
   const defaultFormData = {
@@ -100,10 +111,13 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
   
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [propertySelection, setPropertySelection] = useState('');
+  const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const userDropdownRef2 = useRef<HTMLDivElement>(null);
+  const propertyDropdownRef = useRef<HTMLDivElement>(null);
   
   // Initialize form data based on mode
   const getInitialFormData = () => {
@@ -136,6 +150,13 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
   }, [initialData, mode]);
 
   useEffect(() => {
+    const match = propertySelectionOptions.find(
+      (option) => option.estate === formData.estate && option.building === (formData.building || '')
+    );
+    setPropertySelection(match ? match.label : '');
+  }, [formData.estate, formData.building]);
+
+  useEffect(() => {
     onDirtyChange?.(JSON.stringify(formData) !== initialSnapshot);
   }, [formData, initialSnapshot, onDirtyChange]);
 
@@ -158,6 +179,17 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isUserDropdownOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (propertyDropdownRef.current && !propertyDropdownRef.current.contains(event.target as Node)) {
+        setShowPropertyDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -308,41 +340,12 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
     return status;
   };
 
-  const buildingOptions: any = {
-    'no-estate': ['Standalone Building A', 'Standalone Building B', 'Independent Tower', 'Single Property Unit'],
-    'burns-court': ['Riverside Block', 'Parkview Block', 'Central Tower'],
-    'west-side': ['Riverside Block'],
-    'east-end': ['Riverside Block']
-  };
+  const filteredPropertyOptions = propertySelectionOptions.filter((option) =>
+    option.label.toLowerCase().includes(propertySelection.toLowerCase())
+  );
 
   // Building information data
   const buildingInfo: any = {
-    'no-estate': {
-      'standalone-building-a': {
-        name: 'Standalone Building A',
-        address: '15 Independent Street, London',
-        postcode: 'N1 4QR',
-        leaseholders: 12
-      },
-      'standalone-building-b': {
-        name: 'Standalone Building B',
-        address: '28 Freehold Avenue, London',
-        postcode: 'E2 8LP',
-        leaseholders: 16
-      },
-      'independent-tower': {
-        name: 'Independent Tower',
-        address: '101 Solo Road, London',
-        postcode: 'W1 7NT',
-        leaseholders: 28
-      },
-      'single-property-unit': {
-        name: 'Single Property Unit',
-        address: '7 Detached Lane, London',
-        postcode: 'SW3 6HM',
-        leaseholders: 8
-      }
-    },
     'burns-court': {
       'riverside-block': {
         name: 'Riverside Block',
@@ -386,6 +389,14 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
     if (formData.estate && formData.building) {
       return buildingInfo[formData.estate]?.[formData.building];
     }
+    if (formData.estate && !formData.building) {
+      return {
+        name: propertySelection || 'Selected estate',
+        address: 'Estate selected',
+        postcode: 'Building not selected',
+        leaseholders: 'Multiple'
+      };
+    }
     return null;
   };
 
@@ -410,7 +421,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
         <div className="col-12 p-4">
           <div className="d-flex align-items-center gap-3 mb-4">
             <h2 className="mb-0 fw-bold">
-              {mode === 'edit' ? `Edit ${initialData?.title || 'major works'}` : 'Create new major works'}
+              {mode === 'edit' ? `Edit ${initialData?.title || 'Section 20'}` : 'Create new Section 20'}
             </h2>
             {mode === 'edit' && initialData?.status && (
               <span className={`badge ${getStatusBadgeClass(initialData.status)}`}>
@@ -531,12 +542,12 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
               <div className="card mb-4">
                 <div className="card-header bg-light">
                   <h4 className="mb-1 fw-bold">{mode === 'edit' ? 'Edit Details' : 'Basic Information'}</h4>
-                  <p className="text-muted mb-0">{mode === 'edit' ? 'Update major works details' : 'General details about the major works project'}</p>
+                  <p className="text-muted mb-0">{mode === 'edit' ? 'Update Section 20 details' : 'General details about the Section 20 project'}</p>
                 </div>
                 <div className="card-body">
-                  {/* Major Works Title */}
+                  {/* Section 20 Title */}
                   <div className="mb-3">
-                    <label className="form-label fw-medium">Major Works Title</label>
+                    <label className="form-label fw-medium">Section 20 title</label>
                     <input
                       type="text"
                       className="form-control"
@@ -575,7 +586,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                           onChange={(e) => handleChange('workType', e.target.value)}
                         />
                         <label className="form-check-label" htmlFor="majorWorks">
-                          Major works
+                          Section 20
                         </label>
                       </div>
                       <div className="form-check">
@@ -654,13 +665,13 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                           className="form-check-input"
                           type="radio"
                           name="urgencyLevel"
-                          id="urgencyEmergency"
-                          value="emergency"
-                          checked={formData.urgencyLevel === 'emergency'}
+                          id="urgencyDispensation"
+                          value="dispensation"
+                          checked={formData.urgencyLevel === 'dispensation'}
                           onChange={(e) => handleChange('urgencyLevel', e.target.value)}
                         />
-                        <label className="form-check-label" htmlFor="urgencyEmergency">
-                          Emergency
+                        <label className="form-check-label" htmlFor="urgencyDispensation">
+                          Dispensation
                         </label>
                       </div>
                     </div>
@@ -769,7 +780,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                       {/* Assign Users - Multi-select with checkboxes */}
                       <div className="mb-3">
                         <label className="form-label fw-medium">
-                          Assign users
+                          Assigned agent(s)
                         </label>
                         <div className="dropdown w-100" ref={userDropdownRef}>
                           <button
@@ -908,56 +919,73 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
               <div className="card mb-4">
                 <div className="card-header bg-light">
                   <h4 className="mb-1 fw-bold">Property, Budget & Consultation</h4>
-                  <p className="text-muted mb-0">Select affected properties and set project parameters</p>
+                  <p className="text-muted mb-0">Select estate/building and set project parameters</p>
                 </div>
                 <div className="card-body">
                   {/* Section A: Property Selection */}
                   <h6 className="mb-3">Property Selection</h6>
                   
                   <div className="row">
-                    <div className="col-md-6 mb-3">
+                    <div className="col-12 mb-3">
                       <label className="form-label fw-medium">
                         <MapPin size={16} className="me-1 text-primary" />
-                        Estate
+                        Estate/Building
                       </label>
-                      <select
-                        className="form-select"
-                        value={formData.estate}
-                        onChange={(e) => {
-                          setFormData({ ...formData, estate: e.target.value, building: '' });
-                        }}
-                      >
-                        <option value="">Please select an estate</option>
-                        <option value="no-estate">No estate</option>
-                        <option value="burns-court">Burns Court</option>
-                        <option value="west-side">West Side Estate</option>
-                        <option value="east-end">East End Complex</option>
-                      </select>
-                    </div>
-
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label fw-medium">
-                        <Building2 size={16} className="me-1 text-primary" />
-                        Building
-                      </label>
-                      {!formData.estate ? (
-                        <select className="form-select" disabled>
-                          <option>Please select an estate first</option>
-                        </select>
-                      ) : (
-                        <select
-                          className="form-select"
-                          value={formData.building}
-                          onChange={(e) => handleChange('building', e.target.value)}
-                        >
-                          <option value="">Please select a building</option>
-                          {buildingOptions[formData.estate]?.map((building: string) => (
-                            <option key={building} value={building.toLowerCase().replace(' ', '-')}>
-                              {building}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                      <div className="position-relative" ref={propertyDropdownRef}>
+                        <input
+                          type="text"
+                          className="form-control pe-5"
+                          placeholder="Search estate/building"
+                          value={propertySelection}
+                          onFocus={() => setShowPropertyDropdown(true)}
+                          onChange={(e) => {
+                            setPropertySelection(e.target.value);
+                            setShowPropertyDropdown(true);
+                          }}
+                        />
+                        {(formData.estate || formData.building || propertySelection) && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-link position-absolute top-50 end-0 translate-middle-y text-muted text-decoration-none"
+                            onClick={() => {
+                              setPropertySelection('');
+                              setFormData({ ...formData, estate: '', building: '' });
+                              setShowPropertyDropdown(false);
+                            }}
+                            aria-label="Clear selection"
+                          >
+                            Clear
+                          </button>
+                        )}
+                        {showPropertyDropdown && (
+                          <ul
+                            className="dropdown-menu show w-100 mt-1"
+                            style={{ maxHeight: '240px', overflowY: 'auto' }}
+                          >
+                            {filteredPropertyOptions.length > 0 ? (
+                              filteredPropertyOptions.map((option) => (
+                                <li key={option.label}>
+                                  <button
+                                    type="button"
+                                    className="dropdown-item"
+                                    onClick={() => {
+                                      setPropertySelection(option.label);
+                                      setFormData({ ...formData, estate: option.estate, building: option.building });
+                                      setShowPropertyDropdown(false);
+                                    }}
+                                  >
+                                    {option.label}
+                                  </button>
+                                </li>
+                              ))
+                            ) : (
+                              <li>
+                                <span className="dropdown-item-text text-muted">No matches found</span>
+                              </li>
+                            )}
+                          </ul>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1082,7 +1110,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                   {/* Assign Users - Multi-select with checkboxes */}
                   <div className="mb-3">
                     <label className="form-label fw-medium">
-                      Assign users
+                      Assigned agent(s)
                     </label>
                     <div className="dropdown w-100" ref={userDropdownRef2}>
                       <button
@@ -1213,7 +1241,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
 
                   <hr className="my-4" />
 
-                  <h6 className="mb-3">Supporting documents</h6>
+                  <h6 className="mb-3">Document upload</h6>
                   <div
                     className={`border rounded-3 p-4 text-center ${isDragging ? 'border-primary bg-light' : ''}`}
                     style={{
@@ -1269,7 +1297,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                 <div className="card mb-4">
                   <div className="card-header bg-light">
                     <h4 className="mb-1 fw-bold">Review & Create</h4>
-                    <p className="text-muted mb-0">{mode === 'edit' ? 'Review all details before saving changes' : 'Review all details before creating the major works project'}</p>
+                    <p className="text-muted mb-0">{mode === 'edit' ? 'Review all details before saving changes' : 'Review all details before creating the Section 20 project'}</p>
                   </div>
                   <div className="card-body">
                     {/* Section 1: Basic Information */}
@@ -1281,7 +1309,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                       <div className="ps-4">
                         <div className="row">
                           <div className="col-md-6 mb-2">
-                            <strong className="text-muted">Project Title:</strong>
+                            <strong className="text-muted">Section 20 title:</strong>
                             <div>{formData.title || <span className="text-muted">Not provided</span>}</div>
                           </div>
                           <div className="col-md-6 mb-2">
@@ -1307,12 +1335,10 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                       <div className="ps-4">
                         <div className="row">
                           <div className="col-md-6 mb-3">
-                            <strong className="text-muted d-block mb-1">Estate:</strong>
-                            <div>{formData.estate ? formatWorkCategory(formData.estate) : <span className="text-muted">Not selected</span>}</div>
-                          </div>
-                          <div className="col-md-6 mb-3">
-                            <strong className="text-muted d-block mb-1">Building:</strong>
-                            <div>{formData.building ? formatWorkCategory(formData.building) : <span className="text-muted">Not selected</span>}</div>
+                            <strong className="text-muted d-block mb-1">Estate/Building:</strong>
+                            <div>
+                              {propertySelection || <span className="text-muted">Not selected</span>}
+                            </div>
                           </div>
                           {getCurrentBuildingInfo() && (
                             <div className="col-12 mb-3">
@@ -1444,7 +1470,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                         <div className="alert alert-success mb-0">
                           <ul className="mb-0 ps-3">
                             <li className="mb-2">
-                              <strong>Complete Project Structure:</strong> Full major works project with all configured details and settings
+                              <strong>Complete Project Structure:</strong> Full Section 20 project with all configured details and settings
                             </li>
                             {uploadedFiles.length > 0 && (
                               <li className="mb-2">
@@ -1521,7 +1547,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                         className="btn btn-success d-flex align-items-center gap-2"
                       >
                         <CheckCircle size={18} />
-                        Create major works
+                        Create Section 20
                       </button>
                     )}
                   </>

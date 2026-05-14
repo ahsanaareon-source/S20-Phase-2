@@ -56,7 +56,7 @@ export default function EmptyState({ onCreateClick }: EmptyStateProps) {
             You don't have any major work projects yet!
           </p>
           <p className="text-muted" style={{ fontSize: '16px' }}>
-            Your all major works projects will be displayed here. To get started:
+            Your all Section 20 projects will be displayed here. To get started:
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default function EmptyState({ onCreateClick }: EmptyStateProps) {
           onClick={onCreateClick}
           style={{ fontSize: '16px' }}
         >
-          Create new major works
+          Create new Section 20
         </button>
       </div>
     </div>

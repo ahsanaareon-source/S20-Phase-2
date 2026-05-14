@@ -260,7 +260,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
           onClick={onCreateNew}
         >
           <Plus size={18} />
-          New major works
+          New Section 20
         </button>
       </div>
 
@@ -270,7 +270,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
           <div className="card border-0 shadow-sm h-100">
             <div className="card-body" style={{ paddingBottom: '1rem' }}>
               <div className="d-flex justify-content-between align-items-start mb-2" style={{ height: '50px' }}>
-                <div className="text-muted small">Major Works</div>
+                <div className="text-muted small">Section 20</div>
                 <Clipboard size={40} className="text-primary" />
               </div>
               <div className="row" style={{ marginTop: '8px', marginBottom: '0' }}>
@@ -484,7 +484,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
         <div className="row g-0 align-items-center py-3 px-3" style={{ backgroundColor: '#f8f9fa' }}>
           <div className="col" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('title')}>
             <span className="d-flex align-items-center">
-              Major works
+              Section 20
               {renderSortIcon('title')}
             </span>
           </div>

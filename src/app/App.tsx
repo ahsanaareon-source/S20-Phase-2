@@ -270,7 +270,7 @@ export default function App() {
       // Update existing work
       const updatedWork: MajorWork = {
         ...selectedWork,
-        title: data.title || 'Untitled Major Works',
+        title: data.title || 'Untitled Section 20',
         location: getPropertyLabel(data.estate, data.building),
         stage: CONSULTATION_STAGE_LABELS[data.consultationStage] || 'Notice of intention',
         status: data.projectStatus || selectedWork.status,
@@ -291,7 +291,7 @@ export default function App() {
       // Create new work
       const newWork: MajorWork = {
         id: 'new-' + Date.now(),
-        title: data.title || 'Untitled Major Works',
+        title: data.title || 'Untitled Section 20',
         location: getPropertyLabel(data.estate, data.building),
         createdOn: formatDateTime(now),
         stage: CONSULTATION_STAGE_LABELS[data.consultationStage] || 'Notice of intention',
@@ -421,7 +421,7 @@ export default function App() {
                 </div>
                 <div className="text-center mb-4">
                   <div className="d-inline-flex align-items-center gap-2 mb-3">
-                    <h3 className="mb-0">Major works</h3>
+                    <h3 className="mb-0">Section 20</h3>
                     <span
                       className="badge"
                       style={{
@@ -504,7 +504,7 @@ export default function App() {
                       </button>
                     )}
                     <div className="d-flex align-items-center gap-2 flex-wrap">
-                      <h4 className="mb-0">Major works</h4>
+                      <h4 className="mb-0">Section 20</h4>
                       <span
                         className="badge text-uppercase"
                         style={{
@@ -595,7 +595,7 @@ export default function App() {
       <ConfirmationModal
         show={showDiscardChangesModal}
         title="Discard changes?"
-        message="You have unsaved edits in this major works form. Leaving now will discard those changes."
+        message="You have unsaved edits in this Section 20 form. Leaving now will discard those changes."
         confirmLabel="Discard changes"
         cancelLabel="Keep editing"
         variant="warning"
