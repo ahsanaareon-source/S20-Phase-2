@@ -1,8 +1,8 @@
-# Section 20 Release Plan - Phase 2
+# Major Works Release Plan - Phase 2
 
 ## Scope Included in Phase 2
 - Password-protected app access.
-- Section 20 portfolio list with:
+- Major Works portfolio list with:
   - global search
   - estate/building/property-manager filters
   - archived toggle
@@ -10,7 +10,7 @@
   - pagination
   - column visibility
   - report export action
-- Create Section 20 multi-step flow:
+- Create Major Works multi-step flow:
   - basic info
   - property/budget/consultation
   - review and create
@@ -19,8 +19,8 @@
   - clear-selection support
   - assigned agent(s)
   - document upload naming and review alignment
-- Edit Section 20 with dirty-state/discard confirmation.
-- Section 20 detail view with:
+- Edit Major Works with dirty-state/discard confirmation.
+- Major Works detail view with:
   - stage/timeline management
   - legal waiting enforcement between consultation stages
   - CDM embedded checks
@@ -39,4 +39,4 @@
 - Seed/sample data drives several UI states.
 
 ## Terminology
-- Product terminology in this release is Section 20.
+- Product terminology in this release is Major Works.

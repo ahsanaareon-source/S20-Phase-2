@@ -963,7 +963,7 @@ export const generateMajorWorkDetailPDF = (work: any) => {
   
   const phases = [
     { name: 'Planning & Design', progress: work.progress >= 20 ? 100 : work.progress * 5 },
-    { name: 'Section 20 Consultation', progress: work.progress >= 40 ? 100 : Math.max(0, (work.progress - 20) * 5) },
+    { name: 'Major Works Consultation', progress: work.progress >= 40 ? 100 : Math.max(0, (work.progress - 20) * 5) },
     { name: 'Contractor Selection', progress: work.progress >= 60 ? 100 : Math.max(0, (work.progress - 40) * 5) },
     { name: 'Works Execution', progress: work.progress >= 80 ? 100 : Math.max(0, (work.progress - 60) * 5) },
     { name: 'Completion & Handover', progress: Math.max(0, (work.progress - 80) * 5) }
@@ -991,7 +991,7 @@ export const generateMajorWorkDetailPDF = (work: any) => {
     body: [
       ['Project Kickoff', work.startDate, work.startDate, 'Complete'],
       ['Planning Approval', work.planningDate || 'TBD', work.planningDate || '-', work.progress > 10 ? 'Complete' : 'Pending'],
-      ['Section 20 Issued', work.section20Date || 'TBD', work.section20Date || '-', work.progress > 30 ? 'Complete' : 'Pending'],
+      ['Major Works Issued', work.section20Date || 'TBD', work.section20Date || '-', work.progress > 30 ? 'Complete' : 'Pending'],
       ['Contractor Appointed', work.contractorDate || 'TBD', work.contractorDate || '-', work.progress > 50 ? 'Complete' : 'Pending'],
       ['Works 50% Complete', 'TBD', '-', work.progress > 50 ? 'Complete' : 'Pending'],
       ['Works 75% Complete', 'TBD', '-', work.progress > 75 ? 'Complete' : 'Pending'],
@@ -1256,7 +1256,7 @@ export const generateMajorWorkDetailPDF = (work: any) => {
     startY: yPos + 5,
     head: [['Requirement', 'Status', 'Date Completed']],
     body: [
-      ['Section 20 Consultation', 'Complete', work.section20Date || '-'],
+      ['Major Works Consultation', 'Complete', work.section20Date || '-'],
       ['Building Regulations Approval', 'Complete', work.planningDate || '-'],
       ['Health & Safety Plan', 'Complete', work.startDate],
       ['Insurance Certificate', 'Complete', work.startDate],

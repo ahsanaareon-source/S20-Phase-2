@@ -193,7 +193,7 @@ export default function NewDocumentModal({ show, onClose, onSubmit }: NewDocumen
                 </h6>
                 {isConsultationType(formData.documentType) && (
                   <div className="mb-3">
-                    <label className="form-label fw-medium" style={{ fontSize: '14px' }}>Section 20 stage</label>
+                    <label className="form-label fw-medium" style={{ fontSize: '14px' }}>Major Works stage</label>
                     <select
                       className="form-select"
                       value={formData.stage}

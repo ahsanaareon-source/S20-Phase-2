@@ -23,7 +23,7 @@ export default function AuditLog() {
       id: '11',
       timestamp: new Date(Date.now() - 45 * 60 * 1000).toLocaleString('en-GB'),
       action: 'Issue Linked',
-      description: 'Linked issue #2547 "Water damage in Flat 12A" to Section 20',
+      description: 'Linked issue #2547 "Water damage in Flat 12A" to Major Works',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
     },
@@ -39,14 +39,14 @@ export default function AuditLog() {
       id: '9',
       timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toLocaleString('en-GB'),
       action: 'Document Uploaded',
-      description: 'Uploaded "Section 20 Notice - Residents.pdf"',
+      description: 'Uploaded "Major Works Notice - Residents.pdf"',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
     },
     {
       id: '8',
       timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toLocaleString('en-GB'),
-      action: 'Section 20 Updated',
+      action: 'Major Works Updated',
       description: 'Updated budget to £285,000',
       user: 'Michael Chen',
       dataSource: 'manual'
@@ -55,7 +55,7 @@ export default function AuditLog() {
       id: '7',
       timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 - 2 * 60 * 60 * 1000).toLocaleString('en-GB'),
       action: 'Issue Linked',
-      description: 'Linked issue #2498 "Structural assessment required" to Section 20',
+      description: 'Linked issue #2498 "Structural assessment required" to Major Works',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
     },
@@ -71,14 +71,14 @@ export default function AuditLog() {
       id: '5',
       timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 - 3 * 60 * 60 * 1000).toLocaleString('en-GB'),
       action: 'Team Member Added',
-      description: 'Added David Brown as Section 20 Surveyor',
+      description: 'Added David Brown as Major Works Surveyor',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
     },
     {
       id: '4',
       timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toLocaleString('en-GB'),
-      action: 'Section 20 Updated',
+      action: 'Major Works Updated',
       description: 'Updated property details and consultation stage',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
@@ -95,15 +95,15 @@ export default function AuditLog() {
       id: '2',
       timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 2 * 60 * 60 * 1000).toLocaleString('en-GB'),
       action: 'Timeline Created',
-      description: 'Generated Section 20 timeline with 6 stages',
+      description: 'Generated Major Works timeline with 6 stages',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
     },
     {
       id: '1',
       timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 - 2 * 60 * 60 * 1000 - 5 * 60 * 1000).toLocaleString('en-GB'),
-      action: 'Section 20 Created',
-      description: 'Section 20 created for Riverside Heights',
+      action: 'Major Works Created',
+      description: 'Major Works created for Riverside Heights',
       user: 'Sarah Mitchell',
       dataSource: 'manual'
     }

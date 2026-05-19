@@ -271,7 +271,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'reviewing',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-4',
@@ -285,7 +285,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: true,
       status: 'no-action',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-5',
@@ -299,7 +299,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'addressed',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-6',
@@ -313,7 +313,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: true,
       status: 'no-action',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-7',
@@ -327,7 +327,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'reviewing',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-8',
@@ -341,7 +341,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'reviewing',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-9',
@@ -355,7 +355,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: true,
       status: 'no-action',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-10',
@@ -369,7 +369,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'addressed',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-11',
@@ -383,7 +383,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'reviewing',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-12',
@@ -397,7 +397,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: true,
       status: 'no-action',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-13',
@@ -411,7 +411,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'reviewing',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-14',
@@ -425,7 +425,7 @@ export default function MajorWorksDetail({ work, onBack, onUpdateWork, isEditMod
       isObjection: false,
       status: 'no-action',
       documentId: 5,
-      documentName: 'Initial Section 20 Notice to Lease...'
+      documentName: 'Initial Major Works Notice to Lease...'
     },
     {
       id: 'obs-15',
@@ -1316,7 +1316,7 @@ Open/download the source file for the full original content.`;
     },
     {
       id: 5,
-      name: 'Initial Section 20 Notice to Lease...',
+      name: 'Initial Major Works Notice to Lease...',
       type: 'Notice',
       category: 'consultation',
       stage: 'First notice',
@@ -1978,7 +1978,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'Apex Roofing',
         issueRef: linkedQuoteIssues[0]?.issueRef ?? '#IS2001',
-        requestTitle: 'Riverside Roof Section 20 quote',
+        requestTitle: 'Riverside Roof Major Works quote',
         status: 'Quote received',
         quoteValue: '£118,400',
         nominatedByLeaseholders: false
@@ -1986,7 +1986,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'Premier Restoration',
         issueRef: linkedQuoteIssues[1]?.issueRef ?? '#IS2011',
-        requestTitle: 'Riverside Roof Section 20 quote',
+        requestTitle: 'Riverside Roof Major Works quote',
         status: 'Quote received',
         quoteValue: '£124,900',
         nominatedByLeaseholders: true
@@ -1994,7 +1994,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'BuildRight',
         issueRef: linkedQuoteIssues[2]?.issueRef ?? '#IS2019',
-        requestTitle: 'Riverside Roof Section 20 quote',
+        requestTitle: 'Riverside Roof Major Works quote',
         status: 'Clarification pending',
         quoteValue: '£131,250',
         nominatedByLeaseholders: false
@@ -2002,7 +2002,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'SafeAccess Group',
         issueRef: linkedQuoteIssues[3]?.issueRef ?? '#IS2020',
-        requestTitle: 'Riverside Roof Section 20 quote',
+        requestTitle: 'Riverside Roof Major Works quote',
         status: 'Requested',
         quoteValue: null,
         nominatedByLeaseholders: false
@@ -2010,7 +2010,7 @@ Open/download the source file for the full original content.`;
       {
         contractor: 'Vertex Roofing',
         issueRef: linkedQuoteIssues[4]?.issueRef ?? '#IS2021',
-        requestTitle: 'Riverside Roof Section 20 quote',
+        requestTitle: 'Riverside Roof Major Works quote',
         status: 'Requested',
         quoteValue: null,
         nominatedByLeaseholders: false
@@ -2071,7 +2071,7 @@ Open/download the source file for the full original content.`;
         {
           source: 'Setup',
           title: 'No consultation started',
-          detail: 'Create the first consultation documents to begin the Section 20 process.',
+          detail: 'Create the first consultation documents to begin the Major Works process.',
           tone: 'secondary' as const,
           actionLabel: 'Open documents',
           targetTab: 'documents' as const
@@ -2149,7 +2149,7 @@ Open/download the source file for the full original content.`;
       return [
         {
           source: 'Setup',
-          title: 'Section 20 created',
+          title: 'Major Works created',
           where: 'Overview',
           when: formatUpdateTimestamp(work.createdOn),
           actor: work.propertyManager || 'System',
@@ -2214,7 +2214,7 @@ Open/download the source file for the full original content.`;
         where: 'CDM',
         when: formatUpdateTimestamp(currentStageDocuments[0]?.lastUpdated),
         actor: currentStageDocuments[0]?.lastUpdatedBy || 'Property manager',
-        detail: 'CDM requirements were reviewed and updated for this Section 20.',
+        detail: 'CDM requirements were reviewed and updated for this Major Works.',
         actionLabel: 'Open documents',
         targetTab: 'documents'
       });
@@ -2898,7 +2898,7 @@ Open/download the source file for the full original content.`;
                 budget: 450000,
                 startDate: '15/01/2024',
                 expectedCompletion: '30/06/2025',
-                description: work.formData?.description || 'Comprehensive roof replacement and waterproofing project for Riverside Apartments. This Section 20 project involves the complete removal and replacement of the existing roof structure, including improved insulation and drainage systems.',
+                description: work.formData?.description || 'Comprehensive roof replacement and waterproofing project for Riverside Apartments. This Major Works project involves the complete removal and replacement of the existing roof structure, including improved insulation and drainage systems.',
                 unitsAffected: `${leaseholderCount} leaseholders`,
                 residentsNotified: '42 leaseholders',
                 contractors: '3 companies',
@@ -3864,7 +3864,7 @@ Open/download the source file for the full original content.`;
                     </div>
                   ) : (
                     <div className="rounded-3 border p-3 text-muted small">
-                      All good. No immediate actions are needed and this Section 20 is currently on track.
+                      All good. No immediate actions are needed and this Major Works is currently on track.
                     </div>
                   )}
                 </div>
@@ -3958,7 +3958,7 @@ Open/download the source file for the full original content.`;
             <div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted">
               <LinkIcon size={48} className="mb-3 opacity-50" />
               <p className="text-center">No issues linked to this project yet</p>
-              <p className="small text-center mb-3">Click "Link Issue" to manually associate issues with this Section 20</p>
+              <p className="small text-center mb-3">Click "Link Issue" to manually associate issues with this Major Works</p>
               <button
                 className="btn d-flex align-items-center gap-2"
                 onClick={() => setShowLinkIssueModal(true)}
@@ -4009,7 +4009,7 @@ Open/download the source file for the full original content.`;
                 </div>
                 <h4 className="mb-3">No documents yet</h4>
                 <p className="text-muted mb-4">
-                  Documents will be created and stored here as the Section 20 project progresses through each stage.
+                  Documents will be created and stored here as the Major Works project progresses through each stage.
                 </p>
                 <button 
                   className="btn btn-primary d-flex align-items-center gap-2 mx-auto"
@@ -4143,7 +4143,7 @@ Open/download the source file for the full original content.`;
                                     onChange={() => toggleDocColumn('section20Stage')}
                                   />
                                   <label className="form-check-label" htmlFor="doc-col-section20Stage" style={{ color: '#4a5565' }}>
-                                    Section 20 stage
+                                    Major Works stage
                                   </label>
                                 </div>
                                 <div className="form-check mb-2">
@@ -4296,7 +4296,7 @@ Open/download the source file for the full original content.`;
                           onClick={() => handleSort('stage')}
                         >
                           <div className="d-flex align-items-center gap-1">
-                            Section 20 stage
+                            Major Works stage
                             {sortColumn === 'stage' && (
                               sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
                             )}
@@ -4871,7 +4871,7 @@ Open/download the source file for the full original content.`;
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Link issue to Section 20</h5>
+                <h5 className="modal-title">Link issue to Major Works</h5>
                 <button 
                   type="button" 
                   className="btn-close" 
@@ -4884,7 +4884,7 @@ Open/download the source file for the full original content.`;
               </div>
               <div className="modal-body">
                 <p className="mb-3">
-                  Select one or more issues from <strong>{work.formData?.building || work.location || 'Riverside Apartments'}</strong> to manually link to this Section 20
+                  Select one or more issues from <strong>{work.formData?.building || work.location || 'Riverside Apartments'}</strong> to manually link to this Major Works
                 </p>
                 
                 {/* Search input */}

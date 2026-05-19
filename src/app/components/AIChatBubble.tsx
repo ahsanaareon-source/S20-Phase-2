@@ -75,7 +75,7 @@ export default function AIChatBubble({ onOpenProject }: AIChatBubbleProps) {
 
     // Delayed projects
     if (lowerMessage.includes('delay') || lowerMessage.includes('delayed')) {
-      return "📊 **Delayed Projects:**\n\n**Cladding Project Dockside** is currently delayed due to:\n• Missing tender submissions (2 contractors)\n• Section 20 consultation period needs extension\n• Estimated delay: 3-4 weeks\n\n**Recommended actions:**\n1. Contact contractors for updated quotes\n2. File extension request for consultation period\n3. Update leaseholders with revised timeline\n\nWould you like me to draft a notification for the leaseholders?";
+      return "📊 **Delayed Projects:**\n\n**Cladding Project Dockside** is currently delayed due to:\n• Missing tender submissions (2 contractors)\n• Major Works consultation period needs extension\n• Estimated delay: 3-4 weeks\n\n**Recommended actions:**\n1. Contact contractors for updated quotes\n2. File extension request for consultation period\n3. Update leaseholders with revised timeline\n\nWould you like me to draft a notification for the leaseholders?";
     }
 
     // Status updates
@@ -108,9 +108,9 @@ export default function AIChatBubble({ onOpenProject }: AIChatBubbleProps) {
       return "👥 **Leaseholder Consultation Status:**\n\n**Active Consultations:**\n• Riverside Roof: 46 leaseholders (0 responses yet)\n• Legacy House: 32 leaseholders (8 responses, 3 objections)\n• Dockside: 28 leaseholders (consultation paused)\n\n**Response Rates:**\n• Average: 35% response rate\n• Objections: 12% of responses\n• Common concerns: Cost allocation, timeline\n\n**Pending Actions:**\n• 2 consultation periods need extension\n• 5 leaseholder queries unanswered\n• 1 formal objection requires response\n\nNeed help drafting responses to objections?";
     }
 
-    // Section 20
-    if (lowerMessage.includes('section 20') || lowerMessage.includes('compliance')) {
-      return "⚖️ **Section 20 Compliance:**\n\n**Compliant Projects (6):**\n• All stages properly documented\n• Consultation periods met\n• Required notices sent\n\n**Attention Required (2):**\n• Dockside - Missing 3rd contractor quote\n• Eastside - Consultation extension needed\n\n**Recent Compliance Checks:**\n✅ All notices include required information\n✅ Proper consultation periods observed\n⚠️ 2 documents need date format corrections\n\n**Recommendation:**\nAddress Dockside contractor quotes within 5 days to maintain compliance.\n\nWould you like a detailed compliance report?";
+    // Major Works
+    if (lowerMessage.includes('major works') || lowerMessage.includes('compliance')) {
+      return "⚖️ **Major Works Compliance:**\n\n**Compliant Projects (6):**\n• All stages properly documented\n• Consultation periods met\n• Required notices sent\n\n**Attention Required (2):**\n• Dockside - Missing 3rd contractor quote\n• Eastside - Consultation extension needed\n\n**Recent Compliance Checks:**\n✅ All notices include required information\n✅ Proper consultation periods observed\n⚠️ 2 documents need date format corrections\n\n**Recommendation:**\nAddress Dockside contractor quotes within 5 days to maintain compliance.\n\nWould you like a detailed compliance report?";
     }
 
     // Help or general
@@ -154,7 +154,7 @@ export default function AIChatBubble({ onOpenProject }: AIChatBubbleProps) {
   const renderGreetingMessage = (onProjectClick: (id: string) => void) => {
     return (
       <div>
-        <div>👋 Hi! I'm Aidenn, your Section 20 AI Assistant. Here's what needs your attention:</div>
+        <div>👋 Hi! I'm Aidenn, your Major Works AI Assistant. Here's what needs your attention:</div>
         
         <div className="mt-3">
           <div style={{ fontWeight: 600, marginBottom: '8px' }}>🔴 <strong>Urgent (2 items)</strong></div>
@@ -489,7 +489,7 @@ export default function AIChatBubble({ onOpenProject }: AIChatBubbleProps) {
                     Aidenn
                   </div>
                   <div style={{ fontSize: '12px', opacity: 0.9 }}>
-                    Section 20 Assistant
+                    Major Works Assistant
                   </div>
                 </div>
               </div>

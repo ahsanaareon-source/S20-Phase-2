@@ -12,7 +12,7 @@ interface MajorWorksFormProps {
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
-// Template data based on work categories - Section 20 Consultation Stages
+// Template data based on work categories - Major Works Consultation Stages
 const getTimelineTemplate = (category: string) => {
   const templates: any = {
     'roof-repairs': [
@@ -423,7 +423,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
         <div className="col-12 p-4">
           <div className="d-flex align-items-center gap-3 mb-4">
             <h2 className="mb-0 fw-bold">
-              {mode === 'edit' ? `Edit ${initialData?.title || 'Section 20'}` : 'Create new Section 20'}
+              {mode === 'edit' ? `Edit ${initialData?.title || 'Major Works'}` : 'Create new Major Works'}
             </h2>
             {mode === 'edit' && initialData?.status && (
               <span className={`badge ${getStatusBadgeClass(initialData.status)}`}>
@@ -544,12 +544,12 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
               <div className="card mb-4">
                 <div className="card-header bg-light">
                   <h4 className="mb-1 fw-bold">{mode === 'edit' ? 'Edit Details' : 'Basic Information'}</h4>
-                  <p className="text-muted mb-0">{mode === 'edit' ? 'Update Section 20 details' : 'General details about the Section 20 project'}</p>
+                  <p className="text-muted mb-0">{mode === 'edit' ? 'Update Major Works details' : 'General details about the Major Works project'}</p>
                 </div>
                 <div className="card-body">
-                  {/* Section 20 Title */}
+                  {/* Major Works Title */}
                   <div className="mb-3">
-                    <label className="form-label fw-medium">Section 20 title</label>
+                    <label className="form-label fw-medium">Major Works title</label>
                     <input
                       type="text"
                       className="form-control"
@@ -588,7 +588,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                           onChange={(e) => handleChange('workType', e.target.value)}
                         />
                         <label className="form-check-label" htmlFor="majorWorks">
-                          Section 20
+                          Major Works
                         </label>
                       </div>
                       <div className="form-check">
@@ -1298,7 +1298,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                 <div className="card mb-4">
                   <div className="card-header bg-light">
                     <h4 className="mb-1 fw-bold">Review & Create</h4>
-                    <p className="text-muted mb-0">{mode === 'edit' ? 'Review all details before saving changes' : 'Review all details before creating the Section 20 project'}</p>
+                    <p className="text-muted mb-0">{mode === 'edit' ? 'Review all details before saving changes' : 'Review all details before creating the Major Works project'}</p>
                   </div>
                   <div className="card-body">
                     {/* Section 1: Basic Information */}
@@ -1310,7 +1310,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                       <div className="ps-4">
                         <div className="row">
                           <div className="col-md-6 mb-2">
-                            <strong className="text-muted">Section 20 title:</strong>
+                            <strong className="text-muted">Major Works title:</strong>
                             <div>{formData.title || <span className="text-muted">Not provided</span>}</div>
                           </div>
                           <div className="col-md-6 mb-2">
@@ -1471,7 +1471,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                         <div className="alert alert-success mb-0">
                           <ul className="mb-0 ps-3">
                             <li className="mb-2">
-                              <strong>Complete Project Structure:</strong> Full Section 20 project with all configured details and settings
+                              <strong>Complete Project Structure:</strong> Full Major Works project with all configured details and settings
                             </li>
                             {uploadedFiles.length > 0 && (
                               <li className="mb-2">
@@ -1543,7 +1543,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                         className="btn btn-success d-flex align-items-center gap-2"
                       >
                         <CheckCircle size={18} />
-                        Create Section 20
+                        Create Major Works
                       </button>
                     )}
                   </>
