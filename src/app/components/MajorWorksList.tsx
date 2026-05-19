@@ -17,6 +17,7 @@ type SortField = 'title' | 'estate' | 'managementFee' | 'estimatedBudget' | 'sta
 type SortDirection = 'asc' | 'desc' | null;
 
 export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, onUpdateWork }: MajorWorksListProps) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [estateFilter, setEstateFilter] = useState('all');
   const [buildingFilter, setBuildingFilter] = useState('all');
   const [propertyManagerFilter, setPropertyManagerFilter] = useState('all');
@@ -150,6 +151,13 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
   // Filter the data
   const filteredWorks = useMemo(() => {
     return majorWorks.filter(work => {
+      const matchesSearch =
+        !searchTerm.trim() ||
+        work.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        work.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        work.propertyManager.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!matchesSearch) return false;
+
       // Estate filter
       if (estateFilter !== 'all') {
         const workEstate = work.location.split(' - ')[0];
@@ -174,7 +182,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
       
       return true;
     });
-  }, [majorWorks, estateFilter, buildingFilter, propertyManagerFilter, showArchivedWorks]);
+  }, [majorWorks, searchTerm, estateFilter, buildingFilter, propertyManagerFilter, showArchivedWorks]);
 
   // Sort the data
   const sortedWorks = useMemo(() => {
@@ -376,7 +384,7 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                 value={propertyManagerFilter}
                 onChange={(e) => setPropertyManagerFilter(e.target.value)}
               >
-                <option value="all">All property managers</option>
+                <option value="all">All agents</option>
                 {uniquePropertyManagers.map(manager => (
                   <option key={manager} value={manager}>{manager}</option>
                 ))}
@@ -384,7 +392,19 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
             </div>
 
             <div className="col-md-3">
-              <div className="d-flex justify-content-end">
+              <div className="d-flex gap-2">
+                <div className="input-group flex-grow-1">
+                  <span className="input-group-text bg-white border-end-0">
+                    <Search size={18} className="text-muted" />
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search Section 20..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
                 <div className="position-relative" ref={columnDropdownRef}>
                   <button
                     className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
