@@ -13,7 +13,7 @@ interface MajorWorksListProps {
   onUpdateWork: (workId: string, updatedData: Partial<MajorWork>) => void;
 }
 
-type SortField = 'title' | 'createdOn' | 'stage' | 'status' | 'agentFee';
+type SortField = 'title' | 'estate' | 'managementFee' | 'estimatedBudget' | 'status';
 type SortDirection = 'asc' | 'desc' | null;
 
 export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, onUpdateWork }: MajorWorksListProps) {
@@ -30,14 +30,14 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
   // Column visibility state - load from localStorage
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState(() => {
-    const saved = localStorage.getItem('columnVisibility');
-    return saved ? JSON.parse(saved) : {
-      location: true,
-      createdOn: true,
-      stage: true,
+    const defaults = {
+      buildingEstate: true,
       managementFee: true,
+      estimatedBudget: true,
       status: true
     };
+    const saved = localStorage.getItem('columnVisibility');
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
   });
   const columnDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -77,6 +77,13 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
 
   const getMajorWorksDescription = (work: MajorWork) =>
     work.formData?.description || 'No description available';
+
+  const getEstate = (work: MajorWork) => work.location.split(' - ')[0] || '';
+  const getBuilding = (work: MajorWork) => {
+    const parts = work.location.split(' - ');
+    return parts.length > 1 ? parts[1].split(',')[0] : '';
+  };
+  const getEstimatedBudget = (work: MajorWork) => Number(work.formData?.estimatedBudget || 0);
 
   // Calculate dynamic statistics
   const stats = useMemo(() => {
@@ -176,6 +183,17 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
     return [...filteredWorks].sort((a, b) => {
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
+
+      if (sortField === 'estate') {
+        aValue = getEstate(a);
+        bValue = getEstate(b);
+      } else if (sortField === 'managementFee') {
+        aValue = a.agentFee || 0;
+        bValue = b.agentFee || 0;
+      } else if (sortField === 'estimatedBudget') {
+        aValue = getEstimatedBudget(a);
+        bValue = getEstimatedBudget(b);
+      }
 
       // Handle string comparison
       if (typeof aValue === 'string') {
@@ -399,36 +417,12 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                           <input
                             className="form-check-input"
                             type="checkbox"
-                            id="col-location"
-                            checked={visibleColumns.location}
-                            onChange={() => toggleColumn('location')}
-                          />
-                          <label className="form-check-label" htmlFor="col-location" style={{ color: '#4a5565' }}>
-                            Block / Estate
-                          </label>
-                        </div>
-                        <div className="form-check mb-2">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id="col-createdOn"
-                            checked={visibleColumns.createdOn}
-                            onChange={() => toggleColumn('createdOn')}
-                          />
-                          <label className="form-check-label" htmlFor="col-createdOn" style={{ color: '#4a5565' }}>
-                            Expected start date
-                          </label>
-                        </div>
-                        <div className="form-check mb-2">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id="col-stage"
-                            checked={visibleColumns.stage}
-                            onChange={() => toggleColumn('stage')}
-                          />
-                          <label className="form-check-label" htmlFor="col-stage" style={{ color: '#4a5565' }}>
-                            Stage
+                          id="col-buildingEstate"
+                          checked={visibleColumns.buildingEstate}
+                          onChange={() => toggleColumn('buildingEstate')}
+                        />
+                          <label className="form-check-label" htmlFor="col-buildingEstate" style={{ color: '#4a5565' }}>
+                            Building / Estate
                           </label>
                         </div>
                         <div className="form-check mb-2">
@@ -440,7 +434,19 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                             onChange={() => toggleColumn('managementFee')}
                           />
                           <label className="form-check-label" htmlFor="col-managementFee" style={{ color: '#4a5565' }}>
-                            Management Fee
+                            Management fee
+                          </label>
+                        </div>
+                        <div className="form-check mb-2">
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id="col-estimatedBudget"
+                            checked={visibleColumns.estimatedBudget}
+                            onChange={() => toggleColumn('estimatedBudget')}
+                          />
+                          <label className="form-check-label" htmlFor="col-estimatedBudget" style={{ color: '#4a5565' }}>
+                            Estimated budget
                           </label>
                         </div>
                         <div className="form-check mb-3">
@@ -488,27 +494,27 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
               {renderSortIcon('title')}
             </span>
           </div>
-          {visibleColumns.createdOn && (
-            <div className="col-2" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('createdOn')}>
+          {visibleColumns.buildingEstate && (
+            <div className="col-2" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('estate')}>
               <span className="d-flex align-items-center">
-                Created on
-                {renderSortIcon('createdOn')}
-              </span>
-            </div>
-          )}
-          {visibleColumns.stage && (
-            <div className="col-2" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('stage')}>
-              <span className="d-flex align-items-center">
-                Stage
-                {renderSortIcon('stage')}
+                Building / Estate
+                {renderSortIcon('estate')}
               </span>
             </div>
           )}
           {visibleColumns.managementFee && (
-            <div className="col-1" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('agentFee')}>
+            <div className="col-2" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('managementFee')}>
               <span className="d-flex align-items-center">
-                Fee
-                {renderSortIcon('agentFee')}
+                Management fee
+                {renderSortIcon('managementFee')}
+              </span>
+            </div>
+          )}
+          {visibleColumns.estimatedBudget && (
+            <div className="col-2" style={{ cursor: 'pointer', fontWeight: '600', userSelect: 'none' }} onClick={() => handleSort('estimatedBudget')}>
+              <span className="d-flex align-items-center">
+                Estimated budget
+                {renderSortIcon('estimatedBudget')}
               </span>
             </div>
           )}
@@ -579,20 +585,25 @@ export default function MajorWorksList({ majorWorks, onCreateNew, onViewDetail, 
                       {work.location}
                     </div>
                   </div>
-                  {visibleColumns.createdOn && (
-                    <div className="col-2" style={{ color: work.status === 'Archived' ? '#9ca3af' : '#6c757d' }}>{work.createdOn}</div>
-                  )}
-                  {visibleColumns.stage && (
-                    <div className="col-2" style={{ color: work.status === 'Archived' ? '#6b7280' : undefined }}>{work.stage}</div>
+                  {visibleColumns.buildingEstate && (
+                    <div className="col-2" style={{ color: work.status === 'Archived' ? '#9ca3af' : '#6c757d' }}>
+                      <div className="fw-medium">{getEstate(work)}</div>
+                      <div className="small">{getBuilding(work)}</div>
+                    </div>
                   )}
                   {visibleColumns.managementFee && (
-                    <div className="col-1">
+                    <div className="col-2">
                       <span
                         className="fw-semibold"
                         style={{ color: work.status === 'Archived' ? '#9ca3af' : '#198754' }}
                       >
                         {formatCurrency(work.agentFee)}
                       </span>
+                    </div>
+                  )}
+                  {visibleColumns.estimatedBudget && (
+                    <div className="col-2" style={{ color: work.status === 'Archived' ? '#9ca3af' : undefined }}>
+                      <span className="fw-semibold">{formatCurrency(getEstimatedBudget(work))}</span>
                     </div>
                   )}
                   {visibleColumns.status && (

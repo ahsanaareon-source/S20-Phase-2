@@ -808,7 +808,7 @@ export const generateMajorWorkDetailPDF = (work: any) => {
       ['Status', normalizedStatus],
       ['Start Date', work.startDate],
       ['Expected Completion', work.expectedCompletion || 'TBD'],
-      ['Units Affected', work.unitsAffected || 'N/A'],
+      ['Leaseholders', work.unitsAffected || 'N/A'],
       ['Residents Notified', work.residentsNotified || 'N/A'],
       ['Contractors', work.contractors || 'N/A']
     ],

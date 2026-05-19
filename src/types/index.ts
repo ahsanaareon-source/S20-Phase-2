@@ -47,7 +47,6 @@ export interface MajorWorkFormData {
   agentFeeValue: string;
   surveyorFeeType: FeeType;
   surveyorFeeValue: string;
-  unitsAffected: string;
   startDate: string;
   completionDate: string;
   

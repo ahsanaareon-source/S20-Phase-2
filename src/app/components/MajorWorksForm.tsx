@@ -95,7 +95,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
     agentFeeValue: '',
     surveyorFeeType: 'percentage',
     surveyorFeeValue: '',
-    unitsAffected: '24',
     startDate: '2025-03-01',
     completionDate: '2025-06-30',
     consultationStage: 'notice-of-intention',
@@ -122,12 +121,14 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
   // Initialize form data based on mode
   const getInitialFormData = () => {
     if (mode === 'edit' && initialData) {
+      const isDispensationStatus = initialData.status === 'Dispensation';
       // In edit mode, extract data from the work object
       return {
         ...defaultFormData,
         ...initialData.formData,
         title: initialData.title,
-        projectStatus: initialData.status || 'In progress'
+        projectStatus: isDispensationStatus ? 'In progress' : (initialData.status || 'In progress'),
+        urgencyLevel: isDispensationStatus ? 'dispensation' : (initialData.formData?.urgencyLevel || defaultFormData.urgencyLevel)
       };
     }
     return initialData || defaultFormData;
@@ -278,6 +279,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const resolvedStatus = formData.urgencyLevel === 'dispensation' ? 'Dispensation' : formData.projectStatus;
     
     // Prepare final data
     const finalData = mode === 'edit' 
@@ -285,7 +287,7 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
           // In edit mode, just update the formData with projectStatus
           ...initialData,
           title: formData.title,
-          status: formData.projectStatus,
+          status: resolvedStatus,
           formData: {
             ...formData
           }
@@ -691,7 +693,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                           <option value="In progress">Active</option>
                           <option value="On hold">On Hold</option>
                           <option value="Cancelled">Cancelled</option>
-                          <option value="Dispensation">Dispensation</option>
                         </select>
                       </div>
                       
@@ -1480,11 +1481,6 @@ export default function MajorWorksForm({ onCancel, onSubmit, initialData, mode =
                             {formData.estimatedBudget && (
                               <li className="mb-2">
                                 <strong>Budget Framework:</strong> Pre-configured with estimated budget of {formatCurrency(formData.estimatedBudget)}
-                              </li>
-                            )}
-                            {formData.unitsAffected && (
-                              <li className="mb-2">
-                                <strong>Unit Management:</strong> Track and manage {formData.unitsAffected} affected units
                               </li>
                             )}
                             <li className="mb-0">

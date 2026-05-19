@@ -65,7 +65,6 @@ export default function App() {
         agentFeeValue: '10',
         surveyorFeeType: 'percentage',
         surveyorFeeValue: '5',
-        unitsAffected: '24',
         startDate: '2025-03-01',
         completionDate: '2025-06-30',
         consultationStage: 'notice-of-intention',
@@ -258,6 +257,10 @@ export default function App() {
 
   const handleFormSubmit = (data: MajorWorkFormData) => {
     const now = new Date();
+    const resolvedStatus =
+      data.urgencyLevel === 'dispensation'
+        ? 'Dispensation'
+        : (data.status || data.projectStatus || 'In progress');
     
     // Calculate agent fee correctly based on type
     const agentFee = calculateAgentFee(
@@ -273,7 +276,7 @@ export default function App() {
         title: data.title || 'Untitled Section 20',
         location: getPropertyLabel(data.estate, data.building),
         stage: CONSULTATION_STAGE_LABELS[data.consultationStage] || 'Notice of intention',
-        status: data.projectStatus || selectedWork.status,
+        status: resolvedStatus || selectedWork.status,
         agentFee,
         formData: data
       };
@@ -295,7 +298,7 @@ export default function App() {
         location: getPropertyLabel(data.estate, data.building),
         createdOn: formatDateTime(now),
         stage: CONSULTATION_STAGE_LABELS[data.consultationStage] || 'Notice of intention',
-        status: data.projectStatus || 'In progress',
+        status: resolvedStatus,
         agentFee,
         propertyManager: 'Current User',
         formData: data,

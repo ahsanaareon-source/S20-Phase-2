@@ -1557,9 +1557,9 @@ Open/download the source file for the full original content.`;
     
     // Default values if no match
     return {
-      apartmentCount: parseInt(work.formData.unitsAffected) || 12,
+      apartmentCount: 12,
       address: work.location || 'Property address not specified',
-      leaseholderCount: parseInt(work.formData.unitsAffected) || 24
+      leaseholderCount: 24
     };
   };
   
@@ -2899,7 +2899,7 @@ Open/download the source file for the full original content.`;
                 startDate: '15/01/2024',
                 expectedCompletion: '30/06/2025',
                 description: work.formData?.description || 'Comprehensive roof replacement and waterproofing project for Riverside Apartments. This Section 20 project involves the complete removal and replacement of the existing roof structure, including improved insulation and drainage systems.',
-                unitsAffected: '45 properties',
+                unitsAffected: `${leaseholderCount} leaseholders`,
                 residentsNotified: '42 leaseholders',
                 contractors: '3 companies',
                 planningDate: '01/12/2023',
